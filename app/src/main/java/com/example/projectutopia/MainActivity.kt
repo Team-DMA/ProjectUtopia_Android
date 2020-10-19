@@ -3,19 +3,14 @@ package com.example.projectutopia
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
-import android.system.Os.socket
-import android.view.View
+import android.os.Looper
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
-import java.io.DataOutputStream
-import java.io.IOException
-import java.net.InetAddress
-import java.net.Socket
-import java.net.UnknownHostException
+import kotlinx.coroutines.*
 
 
 class MainActivity : AppCompatActivity()
@@ -29,7 +24,6 @@ class MainActivity : AppCompatActivity()
     var wifiModuleIp = ""
     var wifiModulePort = 0
     var CMD = "0"
-
 
     //Progressbar
     var progressBar: ProgressBar? = null;
@@ -51,33 +45,40 @@ class MainActivity : AppCompatActivity()
         btnConnect.setOnClickListener()
         {
             ProgressStart();
-            Thread.sleep(200);
-            GoToViewActivity();
         }
     }
 
+
+
     fun ProgressStart()
     {
-        var temp = false;
-        var handler = Handler();
         var i = progressBar!!.progress
-        Thread(Runnable {
-            while (i < 100) {
+        var handler = Handler(Looper.getMainLooper());
+
+       val tmpCoroutine = GlobalScope.async{
+            while (i < 100)
+            {
                 i += 5
-                // Update the progress bar and display the current value
                 handler.post(Runnable
                 {
                     progressBar!!.progress = i
                 })
-                try {
-                    Thread.sleep(50)
-                } catch (e: InterruptedException) {
+                try
+                {
+                    Thread.sleep(100)
+                }
+                catch (e: InterruptedException)
+                {
                     e.printStackTrace()
                 }
 
             }
-            temp = true;
-        }).start()
+        }
+        GlobalScope.launch(Dispatchers.Main) {
+            tmpCoroutine.await();
+            GoToViewActivity();
+        }
+
     }
     fun GoToViewActivity()
     {
@@ -94,32 +95,6 @@ class MainActivity : AppCompatActivity()
         wifiModuleIp = temp[0]
         wifiModulePort = Integer.valueOf(temp[1])
     }
-
-    /*public class Socket_AsyncTask : AsyncTask<Void, Void, Void>()
-    {
-        override fun doInBackground(vararg params: Void?): Void?
-        {
-            try
-            {
-                val inetAddress: InetAddress = InetAddress.getByName(MainActivity.wifiModuleIp)
-                socket = Socket(inetAddress, MainActivity.wifiModulePort)
-                val dataOutputStream = DataOutputStream(socket.getOutputStream())
-                dataOutputStream.writeBytes(CMD)
-                dataOutputStream.close()
-                socket.close()
-            }
-            catch (e: UnknownHostException)
-            {
-                e.printStackTrace()
-            }
-            catch (e: IOException)
-            {
-                e.printStackTrace()
-            }
-            return null
-        }
-    }*/
-
 }
 
 
