@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">ProjectUtopia</string>
     <string name="go_back">Go Back</string>
+    <string name="_0">0°</string>
 </resources>
