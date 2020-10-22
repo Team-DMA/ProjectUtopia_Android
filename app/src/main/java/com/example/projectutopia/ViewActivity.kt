@@ -31,7 +31,8 @@ class ViewActivity : AppCompatActivity()
 
         val mTextViewAngleLeft = findViewById(R.id.textView_angle_left) as TextView;
         val mTextViewStrengthLeft = findViewById(R.id.textView_strength_left) as TextView;
-        val joystick = findViewById(R.id.joystickView) as JoystickView
+        val joystickFB = findViewById(R.id.joystickView1) as JoystickView;
+        val joystickLR = findViewById(R.id.joystickView2) as JoystickView;
 
 
         //VIDEO LIVESTREAM
@@ -43,9 +44,12 @@ class ViewActivity : AppCompatActivity()
         videoViewer.start()
 
         //LISTENER
-        joystick.setOnMoveListener { angle, strength ->
+        joystickFB.setOnMoveListener { angle, strength ->
             mTextViewAngleLeft.setText(angle.toString().plus("°"));
             mTextViewStrengthLeft.setText(strength.toString().plus("%"));
+        }
+        joystickLR.setOnMoveListener { angle, strength ->
+
         }
 
         btnGoBack.setOnClickListener()
