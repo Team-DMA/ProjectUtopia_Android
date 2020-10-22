@@ -48,7 +48,13 @@ class MainActivity : AppCompatActivity()
         }
     }
 
+    override fun onBackPressed()
+    {
+        super.onBackPressed();
 
+        Toast.makeText(this,"App closed",Toast.LENGTH_SHORT).show();
+        finishAffinity();
+    }
 
     fun ProgressStart()
     {
@@ -85,7 +91,7 @@ class MainActivity : AppCompatActivity()
         connected = true;
         val intent = Intent(this, ViewActivity::class.java)
         startActivity(intent);
-        Toast.makeText(this, "Connected", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
     }
 
     fun getIPandPort()

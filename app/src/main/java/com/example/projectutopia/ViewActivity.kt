@@ -7,6 +7,7 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import android.widget.VideoView
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import io.github.controlwear.virtual.joystick.android.JoystickView
 
@@ -44,10 +45,11 @@ class ViewActivity : AppCompatActivity()
         videoViewer.start()
 
         //LISTENER
-        joystickFB.setOnMoveListener { angle, strength ->
+        joystickFB.setOnMoveListener{ angle, strength ->
             mTextViewAngleLeft.setText(angle.toString().plus("°"));
             mTextViewStrengthLeft.setText(strength.toString().plus("%"));
         }
+
         joystickLR.setOnMoveListener { angle, strength ->
 
         }
@@ -58,12 +60,19 @@ class ViewActivity : AppCompatActivity()
         }
     }
 
+    override fun onBackPressed()
+    {
+        super.onBackPressed();
+
+        BackToMainMenu();
+    }
+
     fun BackToMainMenu()
     {
         connected = false;
         val intent = Intent(this, MainActivity::class.java);
         startActivity(intent);
-        Toast.makeText(this, "Disconnected", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Disconnected", Toast.LENGTH_SHORT).show();
     }
 }
     /*public class Socket_AsyncTask : AsyncTask<Void, Void, Void>()
