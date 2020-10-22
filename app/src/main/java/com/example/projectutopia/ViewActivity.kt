@@ -27,7 +27,7 @@ class ViewActivity : AppCompatActivity()
 
         //
 
-        val btnGoBack = findViewById(R.id.btn_back) as Button;
+        //val btnGoBack = findViewById(R.id.btn_back) as Button;
         val videoViewer = findViewById(R.id.videoView) as VideoView;
 
         val mTextViewAngleLeft = findViewById(R.id.textView_angle_left) as TextView;
@@ -54,10 +54,10 @@ class ViewActivity : AppCompatActivity()
 
         }
 
-        btnGoBack.setOnClickListener()
+        /*btnGoBack.setOnClickListener()
         {
             BackToMainMenu();
-        }
+        }*/
     }
 
     override fun onBackPressed()

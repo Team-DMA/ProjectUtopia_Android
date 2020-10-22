@@ -37,14 +37,25 @@
         app:layout_constraintTop_toTopOf="parent">
 
 
-        <Button
-            android:id="@+id/btn_back"
-            android:layout_width="116dp"
-            android:layout_height="49dp"
-            android:text="@string/go_back"
+        <ImageView
+            android:id="@+id/compassPic"
+            android:layout_width="383dp"
+            android:layout_height="78dp"
+            android:layout_marginBottom="16dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:srcCompat="@drawable/compass_small" />
+
+        <ImageView
+            android:id="@+id/compassPicSec"
+            android:layout_width="17dp"
+            android:layout_height="11dp"
+            android:layout_marginBottom="3dp"
+            app:layout_constraintBottom_toTopOf="@+id/compassPic"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:srcCompat="@drawable/compass_nadel" />
 
         <TextView
             android:id="@+id/textView_angle_left"
