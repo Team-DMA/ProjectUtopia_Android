@@ -9,20 +9,19 @@ import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-
 import kotlinx.coroutines.*
 
 
 class MainActivity : AppCompatActivity()
 {
     //UI Element
+    var connected: Boolean = false;
 
-    var connected: Boolean? = null;
+    var txtAddressIP: EditText? = null;
+    var txtAddressPort: EditText? = null;
 
-    var txtAddress: EditText? = null
-
-    var wifiModuleIp = ""
-    var wifiModulePort = 0
+    var wifiModuleIp: String? = null;
+    var wifiModulePort: Int? = 0;
     var CMD = "0"
 
     //Progressbar
@@ -35,15 +34,12 @@ class MainActivity : AppCompatActivity()
 
         progressBar = findViewById(R.id.prgBar) as ProgressBar;
         val btnConnect = findViewById(R.id.btn_connect) as Button;
-        txtAddress = findViewById<EditText>(R.id.ipAdr);
-
-        //Variablen abgleichen
-        this.connected = ViewActivity().connected;
-
-        //
+        txtAddressIP = findViewById(R.id.ipAdr) as EditText;
+        txtAddressPort = findViewById(R.id.portAdr) as EditText;
 
         btnConnect.setOnClickListener()
         {
+            getIPandPort();
             ProgressStart();
         }
     }
@@ -52,7 +48,9 @@ class MainActivity : AppCompatActivity()
     {
         super.onBackPressed();
 
-        Toast.makeText(this,"App closed",Toast.LENGTH_SHORT).show();
+        this.connected = false;
+
+        Toast.makeText(this, "App closed", Toast.LENGTH_SHORT).show();
         finishAffinity();
     }
 
@@ -88,18 +86,22 @@ class MainActivity : AppCompatActivity()
     }
     fun GoToViewActivity()
     {
-        connected = true;
-        val intent = Intent(this, ViewActivity::class.java)
+        println("connected = true");
+        this.connected = true;
+        val intent = Intent(baseContext, ViewActivity::class.java)
+        println("putExtra");
+        intent.putExtra("connected", connected);
+        intent.putExtra("RPI_IP", wifiModuleIp);
+        intent.putExtra("RPI_PORT", wifiModulePort);
+        println("StartAct");
         startActivity(intent);
         Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
     }
 
     fun getIPandPort()
     {
-        val iPandPort: String = txtAddress.toString()
-        val temp = iPandPort.split(":".toRegex()).toTypedArray()
-        wifiModuleIp = temp[0]
-        wifiModulePort = Integer.valueOf(temp[1])
+        wifiModuleIp = txtAddressIP!!.text.toString();
+        wifiModulePort = (txtAddressPort!!.text).toString().toIntOrNull();
     }
 }
 

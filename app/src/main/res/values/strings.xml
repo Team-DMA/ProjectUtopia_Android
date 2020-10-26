@@ -2,4 +2,7 @@
     <string name="app_name">ProjectUtopia</string>
     <string name="go_back">Go Back</string>
     <string name="_0">0°</string>
+    <string name="_192_168_1_27">192.168.1.27</string>
+    <string name="_doppelpunkt">:</string>
+    <string name="_21567">21567</string>
 </resources>
