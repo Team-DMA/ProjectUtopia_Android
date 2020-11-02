@@ -42,11 +42,11 @@
                 android:id="@+id/ipAdr"
                 android:layout_width="wrap_content"
                 android:layout_height="70dp"
+                android:autofillHints="IP-Adresse"
                 android:ems="10"
                 android:inputType="textUri"
                 android:singleLine="true"
-                android:text="@string/_192_168_1_27"
-                android:autofillHints="IP-Adresse"
+                android:text="192.168.2.114"
                 tools:ignore="LabelFor" />
 
             <TextView
@@ -61,11 +61,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="70dp"
                 android:layout_weight="1"
+                android:autofillHints="Port"
                 android:ems="10"
                 android:inputType="textUri"
                 android:singleLine="true"
-                android:text="@string/_21567"
-                android:autofillHints="Port"
+                android:text="12345"
                 tools:ignore="LabelFor" />
         </LinearLayout>
 
@@ -88,6 +88,18 @@
             android:indeterminate="false"
             android:max="100"
             android:progress="1" />
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TextView" />
+
+        <Button
+            android:id="@+id/buttonDebug"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Debug" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

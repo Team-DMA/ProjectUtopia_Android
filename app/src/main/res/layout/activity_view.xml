@@ -50,7 +50,7 @@
             android:id="@+id/compassPic"
             android:layout_width="383dp"
             android:layout_height="78dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="24dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -67,37 +67,28 @@
             app:srcCompat="@drawable/compass_nadel" />
 
         <TextView
-            android:id="@+id/textView_angle_left"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="60dp"
-            android:text="@string/_0"
-            android:textSize="24sp"
+            android:id="@+id/height"
+            android:layout_width="20dp"
+            android:layout_height="21dp"
+            android:text="0m"
+            android:textAlignment="center"
+            android:textColor="#FFFFFF"
             android:textStyle="bold"
-            app:layout_constraintBottom_toTopOf="@+id/joystickView1"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <TextView
-            android:id="@+id/textView_strength_left"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="120dp"
-            android:text="0%"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toTopOf="@+id/joystickView1"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/compassPic" />
 
         <io.github.controlwear.virtual.joystick.android.JoystickView
             android:id="@+id/joystickView1"
             android:layout_width="197dp"
             android:layout_height="201dp"
             android:layout_marginStart="16dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="8dp"
             app:JV_backgroundColor="#00009688"
             app:JV_borderColor="#FFFFFF"
             app:JV_borderWidth="2dp"
-            app:JV_buttonColor="#000000"
+            app:JV_buttonColor="#818181"
             app:JV_buttonSizeRatio="15%"
             app:JV_fixedCenter="false"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -112,7 +103,7 @@
             app:JV_backgroundColor="#00009688"
             app:JV_borderColor="#FFFFFF"
             app:JV_borderWidth="2dp"
-            app:JV_buttonColor="#000000"
+            app:JV_buttonColor="#818181"
             app:JV_buttonSizeRatio="15%"
             app:JV_fixedCenter="false"
             app:layout_constraintBottom_toBottomOf="parent"

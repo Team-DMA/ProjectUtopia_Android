@@ -8,6 +8,7 @@ import android.widget.Toast
 import android.widget.VideoView
 import androidx.appcompat.app.AppCompatActivity
 import io.github.controlwear.virtual.joystick.android.JoystickView
+import org.w3c.dom.Text
 
 import java.net.DatagramPacket
 import java.net.DatagramSocket
@@ -42,14 +43,11 @@ class ViewActivity : AppCompatActivity()
         this.rpiIP = getIntent().getExtras()!!.getString("RPI_IP");
 
 
-        //val btnGoBack = findViewById(R.id.btn_back) as Button;
         val videoViewer = findViewById(R.id.videoView) as VideoView;
-
-        val mTextViewAngleLeft = findViewById(R.id.textView_angle_left) as TextView;
-        val mTextViewStrengthLeft = findViewById(R.id.textView_strength_left) as TextView;
         val joystickFB = findViewById(R.id.joystickView1) as JoystickView;
         val joystickLR = findViewById(R.id.joystickView2) as JoystickView;
-
+        val heightTxt = findViewById(R.id.height) as TextView;
+        heightTxt.setText(Math.random().roundToInt().toString().plus("m"));
 
         //INIT
         cmd = "InitMsg";
@@ -57,7 +55,6 @@ class ViewActivity : AppCompatActivity()
 
 
         //VIDEO LIVESTREAM
-        //val vidLink = "http://192.168.2.107:8080/video/mpjeg"
         val vidLink = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
         val video: Uri = Uri.parse(vidLink)
         videoViewer.setVideoURI(video)
@@ -68,9 +65,6 @@ class ViewActivity : AppCompatActivity()
         joystickFB.setOnMoveListener{ angle, strength ->
             this.LJoystickAngle = angle;
             this.LJoystickStrength = strength;
-
-            mTextViewAngleLeft.setText(angle.toString().plus("°"));
-            mTextViewStrengthLeft.setText(strength.toString().plus("%"));
         }
 
         joystickLR.setOnMoveListener { angle, strength ->
@@ -78,16 +72,17 @@ class ViewActivity : AppCompatActivity()
             this.RJoystickStrength = strength;
         }
 
-        /*btnGoBack.setOnClickListener()
-        {
-            BackToMainMenu();
-        }*/
-
         //THREADS
         val WifiThread = Thread(Runnable {
             while(true)
             {
                 SendPackets(cmd);
+            }
+        }).start();
+        val RsvMsgs = Thread(Runnable {
+            while(true)
+            {
+                ReceiveMsgs();
             }
         }).start();
 
@@ -104,6 +99,11 @@ class ViewActivity : AppCompatActivity()
         super.onBackPressed();
 
         BackToMainMenu();
+    }
+
+    fun ReceiveMsgs()
+    {
+
     }
 
     fun Update()
@@ -138,10 +138,10 @@ class ViewActivity : AppCompatActivity()
                         .plus(Rdirection);
 
                 //NUR ZUM DEBUG
-                this@ViewActivity.runOnUiThread(java.lang.Runnable {
+                /*this@ViewActivity.runOnUiThread(java.lang.Runnable {
                     val tmpTextView = findViewById(R.id.sendMsgText) as TextView;
                     tmpTextView.setText("Gesendeter Befehl: ".plus(sendString));
-                })
+                }) */
                 //////////////////////////
 
                 SendCmds(sendString);
@@ -157,7 +157,8 @@ class ViewActivity : AppCompatActivity()
 
     fun SendPackets(cmd: String)
     {
-        //if(connected == true)
+        if(connected == true)
+        {
             if (cmd != null)
             {
                 if (cmd != "InitMsg")
@@ -187,16 +188,19 @@ class ViewActivity : AppCompatActivity()
                             //SEND
                             socket!!.send(packet)
                             println("Send.");
-                            socket.close();
                             sendFlag = false;
                         }
                         catch (e: Exception)
                         {
                             System.err.println(e)
                         }
+                        finally {
+                            socket.close();
+                        }
                     }
                 }
             }
+        }
     }
 
     fun BackToMainMenu()
@@ -204,6 +208,7 @@ class ViewActivity : AppCompatActivity()
         this.connected = false;
         MainActivity().connected = false;
         val intent = Intent(this, MainActivity::class.java);
+        intent.putExtra("connected", connected);
         startActivity(intent);
         Toast.makeText(this, "Disconnected", Toast.LENGTH_SHORT).show();
     }
