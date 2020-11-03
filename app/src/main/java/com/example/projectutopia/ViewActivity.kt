@@ -38,16 +38,19 @@ class ViewActivity : AppCompatActivity()
         setContentView(R.layout.activity_view)
 
         //INIT VALUES FROM INTENT
-        this.connected = getIntent().getExtras()!!.getBoolean("connected");
-        this.rpiPort = getIntent().getExtras()!!.getInt("RPI_PORT");
-        this.rpiIP = getIntent().getExtras()!!.getString("RPI_IP");
-
+        val extras = intent.extras;
+        if(extras != null)
+        {
+            this.connected = extras.getBoolean("connected");
+            this.rpiPort = extras.getInt("RPI_PORT");
+            this.rpiIP = extras.getString("RPI_IP");
+        }
 
         val videoViewer = findViewById(R.id.videoView) as VideoView;
         val joystickFB = findViewById(R.id.joystickView1) as JoystickView;
         val joystickLR = findViewById(R.id.joystickView2) as JoystickView;
         val heightTxt = findViewById(R.id.height) as TextView;
-        heightTxt.setText(Math.random().roundToInt().toString().plus("m"));
+        heightTxt.setText((100..1000).random().toString().plus("m"));
 
         //INIT
         cmd = "InitMsg";
@@ -159,44 +162,37 @@ class ViewActivity : AppCompatActivity()
     {
         if(connected == true)
         {
-            if (cmd != null)
+            if (cmd != "InitMsg")
             {
-                if (cmd != "InitMsg")
+                if (sendFlag == true)
                 {
-                    if (sendFlag == true)
+                    val port: Int? = this.rpiPort;
+                    //var port: Int? = 12345;
+                    val message = cmd.toByteArray(Charsets.UTF_8)
+                    var packet: DatagramPacket? = null
+                    var address: InetAddress? = null
+                    var socket: DatagramSocket? = null
+                    // Create a datagram socket
+                    socket = DatagramSocket()
+                    // Get the internet address of the host
+                    //address = InetAddress.getByName("192.168.2.114");
+                    address = InetAddress.getByName(this.rpiIP) //  the address of the rpi
+                    println("Msg: ".plus(cmd))
+                    println("Addresse: ".plus(address).plus(":").plus(port));
+                    packet = DatagramPacket(message, message.size, address, port!!.toInt())
+                    println("Send bytes: ".plus(message));
+                    try
                     {
-                        println("Vorbereiten zum Senden.");
-                        var port: Int? = this.rpiPort;
-                        //var port: Int? = 12345;
-                        var message = cmd.toByteArray(Charsets.UTF_8)
-                        var packet: DatagramPacket? = null
-                        var address: InetAddress? = null
-                        var socket: DatagramSocket? = null
-                        // Create a datagram socket
-                        socket = DatagramSocket()
-                        // Get the internet address of the host
-                        //address = InetAddress.getByName("192.168.2.114");
-                        address = InetAddress.getByName(this.rpiIP) //  the address of the rpi
-                        println("Msg: ".plus(cmd))
-                        println("IP: ".plus(this.rpiIP));
-                        println("Port: ".plus(this.rpiPort));
-                        println("Addresse: ".plus(address).plus(":").plus(port));
-                        packet = DatagramPacket(message, message.size, address, port!!.toInt())
-                        println("Send msg: ".plus(message));
-                        try
-                        {
-                            //SEND
-                            socket!!.send(packet)
-                            println("Send.");
-                            sendFlag = false;
-                        }
-                        catch (e: Exception)
-                        {
-                            System.err.println(e)
-                        }
-                        finally {
-                            socket.close();
-                        }
+                        //SEND
+                        socket.send(packet)
+                        sendFlag = false;
+                    }
+                    catch (e: Exception)
+                    {
+                        System.err.println(e)
+                    }
+                    finally {
+                        socket.close();
                     }
                 }
             }

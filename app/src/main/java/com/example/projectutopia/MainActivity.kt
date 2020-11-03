@@ -37,12 +37,13 @@ class MainActivity : AppCompatActivity()
         setContentView(R.layout.activity_main)
 
         //INIT VALUES FROM INTENT
-        /*if(intent != null)
+        val extras = intent.extras;
+        if(extras != null)
         {
-            this.connected = getIntent().getExtras()!!.getBoolean("connected");
+            this.connected = extras.getBoolean("connected");
             this.wifiModuleIp = null;
             this.wifiModulePort = null;
-        }*/
+        }
 
         progressBar = findViewById(R.id.prgBar) as ProgressBar;
         val btnConnect = findViewById(R.id.btn_connect) as Button;
