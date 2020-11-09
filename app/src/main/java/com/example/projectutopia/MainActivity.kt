@@ -57,15 +57,10 @@ class MainActivity : AppCompatActivity()
         btnDebug.setOnClickListener()
         {
             this.connected = true;
+            getIPandPort();
             GoToViewActivity();
         }
         ////////
-
-        val tmp = Thread(Runnable {
-            while (true) {
-                getIPandPort();
-            }
-        }).start();
 
         btnConnect.setOnClickListener()
         {
@@ -111,7 +106,7 @@ class MainActivity : AppCompatActivity()
            progressBar!!.progress = 60; //PROGRESSBAR
 
            println("Sende Ping an: " + adr + ":" + port);
-           connected = SendReceiveUDP(adr, port, 30000)!!;
+           connected = SendReceiveUDP(adr, port, 20000)!!;
 
            progressBar!!.progress = 70; //PROGRESSBAR
            Thread.sleep(100);
