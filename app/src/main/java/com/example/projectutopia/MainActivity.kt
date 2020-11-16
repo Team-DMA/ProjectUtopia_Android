@@ -1,15 +1,19 @@
 package com.example.projectutopia
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import br.com.simplepass.loadingbutton.customViews.CircularProgressButton
+import kotlinx.coroutines.*
 import java.io.IOException
 import java.net.*
 import java.security.SecureRandom
@@ -65,6 +69,22 @@ class MainActivity : AppCompatActivity()
             GoToViewActivity();
         }
         ////////
+        
+        val tmpBtn = findViewById(R.id.btnConnect) as CircularProgressButton;
+        tmpBtn.setOnClickListener()
+        {
+            tmpBtn.startAnimation();
+            val tmpAsync = GlobalScope.async {
+                delay(5000);
+            }
+            GlobalScope.launch(Dispatchers.Main) {
+                tmpAsync.await();
+                val icon = BitmapFactory.decodeResource(this@MainActivity.resources, R.drawable.ic_error_white_48dp)
+                tmpBtn.doneLoadingAnimation(Color.parseColor("#FF0000"), icon)
+                delay(2000);
+                tmpBtn.revertAnimation();
+            }
+        }
 
         btnConnect.setOnClickListener()
         {
@@ -75,6 +95,35 @@ class MainActivity : AppCompatActivity()
                 ProgressStart();
             }
         }
+
+
+    }
+
+    fun drawableToBitmap(drawable: Drawable): Bitmap {
+        var bitmap: Bitmap? = null
+        if (drawable is BitmapDrawable) {
+            val bitmapDrawable = drawable
+            if (bitmapDrawable.bitmap != null) {
+                return bitmapDrawable.bitmap
+            }
+        }
+        bitmap = if (drawable.intrinsicWidth <= 0 || drawable.intrinsicHeight <= 0) {
+            Bitmap.createBitmap(
+                1,
+                1,
+                Bitmap.Config.ARGB_8888
+            ) // Single color bitmap will be created of 1x1 pixel
+        } else {
+            Bitmap.createBitmap(
+                drawable.intrinsicWidth,
+                drawable.intrinsicHeight,
+                Bitmap.Config.ARGB_8888
+            )
+        }
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight())
+        drawable.draw(canvas)
+        return bitmap
     }
 
     override fun onBackPressed()
@@ -137,7 +186,7 @@ class MainActivity : AppCompatActivity()
     fun receiveUDP(bufferSize: Int, timeout: Int): DatagramPacket?
     {
         print("receiveUDP.");
-        print("Warte auf Nachrichten zum Port: "+ pingPort);
+        print("Warte auf Nachrichten zum Port: " + pingPort);
         val socket = DatagramSocket(pingPort);
         var tmp : DatagramPacket? = null;
         try
@@ -223,7 +272,11 @@ class MainActivity : AppCompatActivity()
                     println("Msg: ".plus(rcvPacket!!.data));
                     val rcvd =
                         "received from " + rcvPacket.getAddress().toString() + ", " + rcvPacket.getPort()
-                            .toString() + ": " + String(rcvPacket.getData(), 0, rcvPacket.getLength())
+                            .toString() + ": " + String(
+                            rcvPacket.getData(),
+                            0,
+                            rcvPacket.getLength()
+                        )
                     println(rcvd)
                     return rcvPacket.data.contentEquals(buffer);
                 }

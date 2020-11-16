@@ -10,6 +10,7 @@
         android:id="@+id/linearLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -43,10 +44,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="70dp"
                 android:autofillHints="IP-Adresse"
-                android:inputType="number|numberDecimal"
                 android:digits="0123456789."
                 android:ems="10"
                 android:hint="192.168.2.103"
+                android:inputType="number|numberDecimal"
                 android:singleLine="true"
                 tools:ignore="LabelFor" />
 
@@ -63,33 +64,58 @@
                 android:layout_height="70dp"
                 android:layout_weight="1"
                 android:autofillHints="Port"
-                android:inputType="number"
                 android:digits="0123456789"
-                android:hint="12345"
                 android:ems="10"
+                android:hint="12345"
+                android:inputType="number"
                 android:singleLine="true"
                 tools:ignore="LabelFor" />
         </LinearLayout>
 
         <Space
             android:layout_width="match_parent"
-            android:layout_height="40dp" />
+            android:layout_height="10dp" />
+
+        <br.com.simplepass.loadingbutton.customViews.CircularProgressButton
+            android:id="@+id/btnConnect"
+            android:background="@drawable/circle"
+            android:layout_height="100dp"
+            android:layout_width="100dp"
+            android:layout_gravity="center_horizontal"
+            android:text="VERBINDEN"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            app:spinning_bar_width="5dp"
+            app:spinning_bar_padding="8dp"
+            app:spinning_bar_color="#FFFFFF"
+
+        />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="34dp" />
 
         <Button
             android:id="@+id/btn_connect"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            android:background="@drawable/circle"
             android:text="Verbinden"
-            android:textSize="24sp" />
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
 
         <ProgressBar
             android:id="@+id/prgBar"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
-            android:layout_height="5dp"
+            android:layout_height="match_parent"
             android:indeterminate="false"
             android:max="100"
             android:progress="1" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="113dp" />
 
         <TextView
             android:id="@+id/textView2"
