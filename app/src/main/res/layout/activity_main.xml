@@ -17,6 +17,10 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="40dp" />
+
         <ImageView
             android:id="@+id/imageView"
             android:layout_width="match_parent"
@@ -91,31 +95,10 @@
 
         />
 
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="34dp" />
-
-        <Button
-            android:id="@+id/btn_connect"
-            android:layout_width="90dp"
-            android:layout_height="90dp"
-            android:background="@drawable/circle"
-            android:text="Verbinden"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp" />
-
-        <ProgressBar
-            android:id="@+id/prgBar"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:indeterminate="false"
-            android:max="100"
-            android:progress="1" />
-
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="113dp" />
+        <View
+            android:layout_width="1dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
 
         <TextView
             android:id="@+id/textView2"

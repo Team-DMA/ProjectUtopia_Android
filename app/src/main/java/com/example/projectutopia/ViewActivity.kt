@@ -131,11 +131,11 @@ class ViewActivity : AppCompatActivity()
         })
         UpdateThread!!.start();
 
-        print("INIT FINISHED");
+        print("ViewActivity() INIT FINISHED");
     }
     override fun onDestroy()
     {
-        println("OnDestroy ausgeführt.");
+        println("ViewActivity OnDestroy ausgeführt.");
         super.onDestroy()
     }
 
@@ -347,13 +347,6 @@ class ViewActivity : AppCompatActivity()
                     Lstrength.plus("|").plus(Ldirection).plus("|").plus(Rstrength).plus("|")
                         .plus(Rdirection);
 
-                //NUR ZUM DEBUG
-                /*this@ViewActivity.runOnUiThread(java.lang.Runnable {
-                    val tmpTextView = findViewById(R.id.sendMsgText) as TextView;
-                    tmpTextView.setText("Gesendeter Befehl: ".plus(sendString));
-                }) */
-                //////////////////////////
-
                 SendCmds(sendString);
             }
         }
@@ -374,7 +367,6 @@ class ViewActivity : AppCompatActivity()
                 if (sendFlag == true)
                 {
                     val port: Int? = this.rpiPort;
-                    //var port: Int? = 12345;
                     val message = cmd.toByteArray(Charsets.UTF_8)
                     var packet: DatagramPacket? = null
                     var address: InetAddress? = null

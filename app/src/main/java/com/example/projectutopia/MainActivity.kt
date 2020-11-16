@@ -22,22 +22,18 @@ import java.util.*
 
 class MainActivity : AppCompatActivity()
 {
-    //UI Element
+    //vars
     var connected: Boolean = false;
-
-    lateinit var btnConnect: Button;
 
     var txtAddressIP: EditText? = null;
     var txtAddressPort: EditText? = null;
 
     var wifiModuleIp: String? = null;
     var wifiModulePort: Int? = 0;
-    var CMD = "0"
 
     val pingPort: Int = 12346;
 
-    //Progressbar
-    var progressBar: ProgressBar? = null;
+    lateinit var buttonConnect: CircularProgressButton;
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -53,8 +49,6 @@ class MainActivity : AppCompatActivity()
             this.wifiModulePort = null;
         }
 
-        progressBar = findViewById(R.id.prgBar) as ProgressBar;
-        btnConnect = findViewById(R.id.btn_connect) as Button;
         txtAddressIP = findViewById(R.id.ipAdr) as EditText;
         txtAddressPort = findViewById(R.id.portAdr) as EditText;
 
@@ -70,60 +64,54 @@ class MainActivity : AppCompatActivity()
         }
         ////////
         
-        val tmpBtn = findViewById(R.id.btnConnect) as CircularProgressButton;
-        tmpBtn.setOnClickListener()
+        buttonConnect = findViewById(R.id.btnConnect) as CircularProgressButton;
+        buttonConnect.setOnClickListener()
         {
-            tmpBtn.startAnimation();
-            val tmpAsync = GlobalScope.async {
-                delay(5000);
-            }
-            GlobalScope.launch(Dispatchers.Main) {
-                tmpAsync.await();
-                val icon = BitmapFactory.decodeResource(this@MainActivity.resources, R.drawable.ic_error_white_48dp)
-                tmpBtn.doneLoadingAnimation(Color.parseColor("#FF0000"), icon)
-                delay(2000);
-                tmpBtn.revertAnimation();
-            }
-        }
-
-        btnConnect.setOnClickListener()
-        {
-            if(txtAddressIP!!.text.isNotEmpty() && txtAddressPort!!.text.isNotEmpty())
-            {
-                btnConnect.isClickable = false;
+            if(txtAddressIP!!.text.isNotEmpty() && txtAddressPort!!.text.isNotEmpty()) {
+                buttonConnect.startAnimation();
+                buttonConnect.isClickable = false;
                 getIPandPort();
-                ProgressStart();
+
+                val tmpCoroutine = GlobalScope.async {
+                    ProgressStart();
+                }
+
+                GlobalScope.launch(Dispatchers.Main) {
+                    tmpCoroutine.await();
+
+                    val icon: Bitmap;
+                    val color: Int;
+                    if(connected == true)
+                    {
+                        icon = BitmapFactory.decodeResource(this@MainActivity.resources,R.drawable.ic_done_white_48dp)
+                        color = Color.parseColor("#00FF00")
+                        delay(3000);
+                    }
+                    else
+                    {
+                        icon = BitmapFactory.decodeResource(this@MainActivity.resources,R.drawable.ic_error_white_48dp)
+                        color = Color.parseColor("#FF0000")
+                    }
+                    buttonConnect.doneLoadingAnimation(color,icon)
+                    if(connected == false)
+                    {
+                        Toast.makeText(this@MainActivity, "No Connection", Toast.LENGTH_LONG).show();
+                    }
+                    delay(2000);
+                    buttonConnect.isClickable = true;
+                    GoToViewActivity();
+                    buttonConnect.revertAnimation();
+                }
             }
         }
 
-
+        print("MainActivity() INIT FINISHED");
     }
 
-    fun drawableToBitmap(drawable: Drawable): Bitmap {
-        var bitmap: Bitmap? = null
-        if (drawable is BitmapDrawable) {
-            val bitmapDrawable = drawable
-            if (bitmapDrawable.bitmap != null) {
-                return bitmapDrawable.bitmap
-            }
-        }
-        bitmap = if (drawable.intrinsicWidth <= 0 || drawable.intrinsicHeight <= 0) {
-            Bitmap.createBitmap(
-                1,
-                1,
-                Bitmap.Config.ARGB_8888
-            ) // Single color bitmap will be created of 1x1 pixel
-        } else {
-            Bitmap.createBitmap(
-                drawable.intrinsicWidth,
-                drawable.intrinsicHeight,
-                Bitmap.Config.ARGB_8888
-            )
-        }
-        val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight())
-        drawable.draw(canvas)
-        return bitmap
+    override fun onDestroy()
+    {
+        println("MainActivity OnDestroy ausgeführt.");
+        super.onDestroy()
     }
 
     override fun onBackPressed()
@@ -138,82 +126,13 @@ class MainActivity : AppCompatActivity()
 
     fun ProgressStart()
     {
-        var i = progressBar!!.progress
-        var handler = Handler(Looper.getMainLooper());
+       val adr = InetAddress.getByName(wifiModuleIp);
+       val port = wifiModulePort!!;
 
-       val tmpCoroutine = GlobalScope.async{
+       println("Sende Ping an: " + adr + ":" + port);
+       connected = SendReceiveUDP(adr, port, 10000)!!;
+       println("connected = ".plus(connected));
 
-           progressBar!!.progress = 0; //PROGRESSBAR
-           Thread.sleep(100);
-
-           progressBar!!.progress = 10; //PROGRESSBAR
-           Thread.sleep(100);
-
-           val adr = InetAddress.getByName(wifiModuleIp);
-           val port = wifiModulePort!!;
-           progressBar!!.progress = 20; //PROGRESSBAR
-           Thread.sleep(100);
-           progressBar!!.progress = 30; //PROGRESSBAR
-           Thread.sleep(100);
-           progressBar!!.progress = 40; //PROGRESSBAR
-           val sock = Socket();
-           Thread.sleep(100);
-           progressBar!!.progress = 50; //PROGRESSBAR
-           Thread.sleep(100);
-           progressBar!!.progress = 60; //PROGRESSBAR
-
-           println("Sende Ping an: " + adr + ":" + port);
-           connected = SendReceiveUDP(adr, port, 10000)!!;
-
-           progressBar!!.progress = 70; //PROGRESSBAR
-           Thread.sleep(100);
-           progressBar!!.progress = 80; //PROGRESSBAR
-           Thread.sleep(100);
-           progressBar!!.progress = 90; //PROGRESSBAR
-           Thread.sleep(100);
-           println("var connected = ".plus(connected));
-           progressBar!!.progress = 100; //PROGRESSBAR
-           Thread.sleep(50);
-        }
-        GlobalScope.launch(Dispatchers.Main) {
-            tmpCoroutine.await();
-            btnConnect.isClickable = true;
-            GoToViewActivity();
-        }
-
-    }
-
-    fun receiveUDP(bufferSize: Int, timeout: Int): DatagramPacket?
-    {
-        print("receiveUDP.");
-        print("Warte auf Nachrichten zum Port: " + pingPort);
-        val socket = DatagramSocket(pingPort);
-        var tmp : DatagramPacket? = null;
-        try
-        {
-            socket.soTimeout = timeout;
-            val text: String
-            val message = ByteArray(bufferSize)
-            val p = DatagramPacket(message, message.size)
-            socket.receive(p);
-            tmp = p;
-            text = String(message, 0, p.length)
-
-        }
-        catch (e: SocketTimeoutException)
-        {
-            println("Timeout reached!!! $e")
-            socket.close()
-        }
-        catch (ex: IOException)
-        {
-            println(ex.message)
-        }
-        finally
-        {
-            socket.close()
-            return tmp;
-        }
     }
 
     fun SendReceiveUDP(adr: InetAddress, port: Int, timeout: Int): Boolean?
@@ -263,7 +182,6 @@ class MainActivity : AppCompatActivity()
                     {
                         socket.close()
                     }
-
 
                     if(rcvPacket == null) {
                         println("Paket null");
@@ -320,7 +238,6 @@ class MainActivity : AppCompatActivity()
 
     fun GoToViewActivity()
     {
-        println("this.connected = ".plus(this.connected));
         if(this.connected == true)
         {
             val intent = Intent(baseContext, ViewActivity::class.java)
@@ -329,12 +246,12 @@ class MainActivity : AppCompatActivity()
             intent.putExtra("RPI_IP", wifiModuleIp);
             intent.putExtra("RPI_PORT", wifiModulePort);
             startActivity(intent);
+            finish();
             Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
         }
         else
         {
-            this.progressBar!!.progress = 0;
-            Toast.makeText(this, "No Connection", Toast.LENGTH_LONG).show();
+            println("No Connection in GoToViewActivity()");
         }
     }
 
