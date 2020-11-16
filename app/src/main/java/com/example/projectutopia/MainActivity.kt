@@ -21,12 +21,16 @@ class MainActivity : AppCompatActivity()
     //UI Element
     var connected: Boolean = false;
 
+    lateinit var btnConnect: Button;
+
     var txtAddressIP: EditText? = null;
     var txtAddressPort: EditText? = null;
 
     var wifiModuleIp: String? = null;
     var wifiModulePort: Int? = 0;
     var CMD = "0"
+
+    val pingPort: Int = 12346;
 
     //Progressbar
     var progressBar: ProgressBar? = null;
@@ -46,7 +50,7 @@ class MainActivity : AppCompatActivity()
         }
 
         progressBar = findViewById(R.id.prgBar) as ProgressBar;
-        val btnConnect = findViewById(R.id.btn_connect) as Button;
+        btnConnect = findViewById(R.id.btn_connect) as Button;
         txtAddressIP = findViewById(R.id.ipAdr) as EditText;
         txtAddressPort = findViewById(R.id.portAdr) as EditText;
 
@@ -64,8 +68,12 @@ class MainActivity : AppCompatActivity()
 
         btnConnect.setOnClickListener()
         {
-            getIPandPort();
-            ProgressStart();
+            if(txtAddressIP!!.text.isNotEmpty() && txtAddressPort!!.text.isNotEmpty())
+            {
+                btnConnect.isClickable = false;
+                getIPandPort();
+                ProgressStart();
+            }
         }
     }
 
@@ -106,7 +114,7 @@ class MainActivity : AppCompatActivity()
            progressBar!!.progress = 60; //PROGRESSBAR
 
            println("Sende Ping an: " + adr + ":" + port);
-           connected = SendReceiveUDP(adr, port, 20000)!!;
+           connected = SendReceiveUDP(adr, port, 10000)!!;
 
            progressBar!!.progress = 70; //PROGRESSBAR
            Thread.sleep(100);
@@ -120,14 +128,17 @@ class MainActivity : AppCompatActivity()
         }
         GlobalScope.launch(Dispatchers.Main) {
             tmpCoroutine.await();
+            btnConnect.isClickable = true;
             GoToViewActivity();
         }
 
     }
 
-    fun receiveUDP(port: Int, bufferSize: Int, timeout: Int): DatagramPacket?
+    fun receiveUDP(bufferSize: Int, timeout: Int): DatagramPacket?
     {
-        val socket = DatagramSocket(port);
+        print("receiveUDP.");
+        print("Warte auf Nachrichten zum Port: "+ pingPort);
+        val socket = DatagramSocket(pingPort);
         var tmp : DatagramPacket? = null;
         try
         {
@@ -160,16 +171,16 @@ class MainActivity : AppCompatActivity()
     {
         try
         {
-            val buffer = ByteArray(8)
+            val buffer = ByteArray(6)
             val socket = DatagramSocket();
             socket.reuseAddress = true;
             var data: ByteArray? = null;
-            val buffer2 = ByteArray(8);
+            val buffer2 = ByteArray(6);
             val packet = DatagramPacket(buffer2, buffer.size);
 
             SecureRandom.getInstanceStrong().nextBytes(buffer); //random bytes
 
-            var out = DatagramPacket(buffer, buffer.size, adr, port)
+            val out = DatagramPacket(buffer, buffer.size, adr, port)
             socket.send(out) // send to the server
 
             while (true)
@@ -177,8 +188,36 @@ class MainActivity : AppCompatActivity()
                 try
                 {
                     println("waiting for msg");
-                    val rcvPacket = receiveUDP(port,buffer.size, timeout);
+
+                    //val rcvPacket = receiveUDP(buffer.size, timeout);
+                    var rcvPacket: DatagramPacket? = null;
+                    val socket = DatagramSocket(pingPort);
+                    try
+                    {
+                        socket.soTimeout = timeout;
+                        val text: String
+                        val message = ByteArray(buffer.size)
+                        val p = DatagramPacket(message, message.size)
+                        socket.receive(p);
+                        rcvPacket = p;
+                    }
+                    catch (e: SocketTimeoutException)
+                    {
+                        println("Timeout reached!!! $e")
+                        socket.close()
+                    }
+                    catch (ex: IOException)
+                    {
+                        println(ex.message)
+                    }
+                    finally
+                    {
+                        socket.close()
+                    }
+
+
                     if(rcvPacket == null) {
+                        println("Paket null");
                         break;
                     }
                     println("Msg: ".plus(rcvPacket!!.data));
@@ -232,6 +271,7 @@ class MainActivity : AppCompatActivity()
         if(this.connected == true)
         {
             val intent = Intent(baseContext, ViewActivity::class.java)
+            intent.putExtra("PingPort", pingPort);
             intent.putExtra("connected", connected);
             intent.putExtra("RPI_IP", wifiModuleIp);
             intent.putExtra("RPI_PORT", wifiModulePort);

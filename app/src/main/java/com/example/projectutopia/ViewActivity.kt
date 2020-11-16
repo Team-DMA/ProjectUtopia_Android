@@ -5,6 +5,7 @@ import android.media.MediaPlayer
 import android.media.MediaPlayer.OnPreparedListener
 import android.net.Uri
 import android.os.Bundle
+import android.system.Os.socket
 import android.widget.TextView
 import android.widget.Toast
 import android.widget.VideoView
@@ -32,7 +33,14 @@ class ViewActivity : AppCompatActivity()
     var RJoystickAngle: Int = 0;
     var RJoystickStrength: Int = 0;
 
+    var checkConPingPort: Int = 0;
+
     lateinit var VidErrorTxt: TextView;
+
+    var threadsStarted: Boolean = false;
+    var WifiThread: Thread = Thread();
+    var ConnectionChecker: Thread = Thread();
+    var UpdateThread: Thread = Thread();
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -43,6 +51,7 @@ class ViewActivity : AppCompatActivity()
         val extras = intent.extras;
         if(extras != null)
         {
+            this.checkConPingPort = extras.getInt("PingPort");
             this.connected = extras.getBoolean("connected");
             this.rpiPort = extras.getInt("RPI_PORT");
             this.rpiIP = extras.getString("RPI_IP");
@@ -98,25 +107,36 @@ class ViewActivity : AppCompatActivity()
         })
 
         //THREADS
-        val WifiThread = Thread(Runnable {
-            while (true) {
+        threadsStarted = true;
+
+        WifiThread = Thread(Runnable {
+            while (threadsStarted) {
                 SendPackets(cmd);
             }
-        }).start();
-        val ConnectionChecker = Thread(Runnable {
-            while (true) {
-                ConnnectionCheck();
-            }
-        }).start();
+        })
+        WifiThread!!.start();
 
-        val UpdateThread = Thread(Runnable {
-            while (true) {
+        ConnectionChecker = Thread(Runnable {
+            while (threadsStarted) {
+                //ConnectionCheck();
+                Thread.sleep(5000);
+            }
+        })
+        ConnectionChecker!!.start();
+
+        UpdateThread = Thread(Runnable {
+            while (threadsStarted) {
                 Update();
             }
-        }).start();
-
+        })
+        UpdateThread!!.start();
 
         print("INIT FINISHED");
+    }
+    override fun onDestroy()
+    {
+        println("OnDestroy ausgeführt.");
+        super.onDestroy()
     }
 
     fun errorInVideo(error: Exception?)
@@ -141,13 +161,54 @@ class ViewActivity : AppCompatActivity()
         BackToMainMenu();
     }
 
-    fun ConnnectionCheck()
+    fun isHostAvailable(host: String?, port: Int, timeout: Int): Boolean
+    {
+        val socket = Socket();
+        try
+        {
+            val inetAddress = InetAddress.getByName(host);
+            val inetSocketAddress = InetSocketAddress(inetAddress, port);
+            println("Check Con of: " + inetSocketAddress);
+            socket.connect(inetSocketAddress, timeout);
+            println("Erfolgreiche Con.");
+            return true;
+        }
+        catch (e: IOException)
+        {
+            println("HostCheck Error: " + e.toString())
+            e.printStackTrace()
+            return false
+        }
+        finally
+        {
+            if (socket != null)
+            {
+                socket.close();
+            }
+        }
+    }
+
+   /* fun ConnectionCheck()
+    {
+        try
+        {
+            println("Check Connection...");
+            connected = isHostAvailable(rpiIP, rpiPort, 10000);
+        }
+        catch (e: Exception)
+        {
+            print("Error: " + e.toString());
+        }
+
+    }*/
+
+    fun ConnectionCheck()
     {
         try
         {
             val timeout = 10000; //10s
             val adr = InetAddress.getByName(rpiIP);
-            val port = rpiPort;
+            val port = this.rpiPort;
             val buffer = ByteArray(4)
             val socket = DatagramSocket();
             socket.reuseAddress = true;
@@ -164,7 +225,33 @@ class ViewActivity : AppCompatActivity()
             {
                 try
                 {
-                    val rcvPacket = receiveUDP(port,buffer.size, timeout);
+                    //val rcvPacket = receiveUDP(port,buffer.size, timeout);
+
+                    var rcvPacket: DatagramPacket? = null;
+                    val socket = DatagramSocket(this.checkConPingPort);
+                    try
+                    {
+                        socket.soTimeout = timeout;
+                        val text: String
+                        val message = ByteArray(buffer.size)
+                        val p = DatagramPacket(message, message.size)
+                        socket.receive(p);
+                        rcvPacket = p;
+                    }
+                    catch (e: SocketTimeoutException)
+                    {
+                        println("Timeout reached!!! $e")
+                        socket.close()
+                    }
+                    catch (ex: IOException)
+                    {
+                        println(ex.message)
+                    }
+                    finally
+                    {
+                        socket.close()
+                    }
+
                     if(rcvPacket == null) {
                         print("Ping nicht erhalten.");
                         connected = false;
@@ -191,6 +278,7 @@ class ViewActivity : AppCompatActivity()
             e.printStackTrace();
         }
     }
+
     fun receiveUDP(port: Int, bufferSize: Int, timeout: Int): DatagramPacket?
     {
         val socket = DatagramSocket(port);
@@ -307,7 +395,7 @@ class ViewActivity : AppCompatActivity()
                     }
                     catch (e: Exception)
                     {
-                        System.err.println("Socket-Send-Error: "+e.toString());
+                        System.err.println("Socket-Send-Error: " + e.toString());
                     }
                     finally {
                         sendFlag = false;
@@ -320,10 +408,12 @@ class ViewActivity : AppCompatActivity()
 
     fun BackToMainMenu()
     {
+        this.threadsStarted = false;
         this.connected = false;
         val intent = Intent(this, MainActivity::class.java);
         intent.putExtra("connected", connected);
         startActivity(intent);
+        finish();
         Toast.makeText(this, "Disconnected", Toast.LENGTH_SHORT).show();
     }
 }
