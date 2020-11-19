@@ -320,12 +320,21 @@ class ViewActivity : AppCompatActivity()
         }
         if(sendFlag == false)
         {
-            if ((LJoystickAngle != 0 && LJoystickStrength != 0) || (RJoystickAngle != 0 && RJoystickStrength != 0))
-            {
+            //if ((LJoystickAngle != 0 && LJoystickStrength != 0) || (RJoystickAngle != 0 && RJoystickStrength != 0))
+            //{
                 var Ldirection: String = "Unknown";
                 var Rdirection: String = "Unknown";
-                var LstrengthTmp: Float = (LJoystickStrength.toFloat() / 10);
-                var RstrengthTmp: Float = (RJoystickStrength.toFloat() / 10);
+                var LstrengthTmp: Float = 0.0F;
+                var RstrengthTmp: Float = 0.0F;
+                if(LJoystickStrength  != 0)
+                {
+                    LstrengthTmp = (LJoystickStrength.toFloat() / 10);
+                }
+                if(RJoystickStrength != 0)
+                {
+                    RstrengthTmp = (RJoystickStrength.toFloat() / 10);
+                }
+
                 if (LJoystickAngle >= 0 && LJoystickAngle < 180) {
                     Ldirection = "F";
                 }
@@ -346,8 +355,9 @@ class ViewActivity : AppCompatActivity()
                     Lstrength.plus("|").plus(Ldirection).plus("|").plus(Rstrength).plus("|")
                         .plus(Rdirection);
 
+                print(sendString);
                 SendCmds(sendString);
-            }
+            //}
         }
     }
 
