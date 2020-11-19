@@ -355,7 +355,6 @@ class ViewActivity : AppCompatActivity()
                     Lstrength.plus("|").plus(Ldirection).plus("|").plus(Rstrength).plus("|")
                         .plus(Rdirection);
 
-                print(sendString);
                 SendCmds(sendString);
             //}
         }
