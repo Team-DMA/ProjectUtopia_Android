@@ -45,7 +45,7 @@
 
             <EditText
                 android:id="@+id/ipAdr"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="70dp"
                 android:autofillHints="IP-Adresse"
                 android:digits="0123456789."
@@ -55,30 +55,30 @@
                 android:singleLine="true"
                 tools:ignore="LabelFor" />
 
-            <TextView
-                android:id="@+id/textView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0"
-                android:text="@string/_doppelpunkt" />
+            <!--   <TextView
+                   android:id="@+id/textView"
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:layout_weight="0"
+                   android:text="@string/_doppelpunkt" />
 
-            <EditText
-                android:id="@+id/portAdr"
-                android:layout_width="wrap_content"
-                android:layout_height="70dp"
-                android:layout_weight="1"
-                android:autofillHints="Port"
-                android:digits="0123456789"
-                android:ems="10"
-                android:hint="12345"
-                android:inputType="number"
-                android:singleLine="true"
-                tools:ignore="LabelFor" />
+               <EditText
+                   android:id="@+id/portAdr"
+                   android:layout_width="wrap_content"
+                   android:layout_height="70dp"
+                   android:layout_weight="1"
+                   android:autofillHints="Port"
+                   android:digits="0123456789"
+                   android:ems="10"
+                   android:hint="12345"
+                   android:inputType="number"
+                   android:singleLine="true"
+                   tools:ignore="LabelFor" /> -->
         </LinearLayout>
 
         <Space
             android:layout_width="match_parent"
-            android:layout_height="10dp" />
+            android:layout_height="20dp" />
 
         <br.com.simplepass.loadingbutton.customViews.CircularProgressButton
             android:id="@+id/btnConnect"

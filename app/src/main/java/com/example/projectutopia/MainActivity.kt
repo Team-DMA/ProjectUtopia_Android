@@ -26,10 +26,10 @@ class MainActivity : AppCompatActivity()
     var connected: Boolean = false;
 
     var txtAddressIP: EditText? = null;
-    var txtAddressPort: EditText? = null;
+    //var txtAddressPort: EditText? = null;
 
     var wifiModuleIp: String? = null;
-    var wifiModulePort: Int? = 0;
+    var wifiModulePort: Int? = null;
 
     val pingPort: Int = 12346;
 
@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity()
         }
 
         txtAddressIP = findViewById(R.id.ipAdr) as EditText;
-        txtAddressPort = findViewById(R.id.portAdr) as EditText;
+        //txtAddressPort = findViewById(R.id.portAdr) as EditText;
 
         //DEBUG
         val txtViewTest = findViewById(R.id.textView2) as TextView;
@@ -67,7 +67,7 @@ class MainActivity : AppCompatActivity()
         buttonConnect = findViewById(R.id.btnConnect) as CircularProgressButton;
         buttonConnect.setOnClickListener()
         {
-            if(txtAddressIP!!.text.isNotEmpty() && txtAddressPort!!.text.isNotEmpty()) {
+            if(txtAddressIP!!.text.isNotEmpty() /*&& txtAddressPort!!.text.isNotEmpty()*/) {
                 buttonConnect.startAnimation();
                 buttonConnect.isClickable = false;
                 getIPandPort();
@@ -258,7 +258,8 @@ class MainActivity : AppCompatActivity()
     fun getIPandPort()
     {
         wifiModuleIp = txtAddressIP!!.text.toString();
-        wifiModulePort = (txtAddressPort!!.text).toString().toIntOrNull();
+        //wifiModulePort = (txtAddressPort!!.text).toString().toIntOrNull();
+        wifiModulePort = 12345;
     }
 }
 

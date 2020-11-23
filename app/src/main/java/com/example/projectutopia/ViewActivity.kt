@@ -11,8 +11,11 @@ import android.widget.VideoView
 import androidx.appcompat.app.AppCompatActivity
 import io.github.controlwear.virtual.joystick.android.JoystickView
 import java.io.IOException
+import java.io.PrintWriter
 import java.net.*
 import java.security.SecureRandom
+import java.util.*
+import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
 
@@ -33,11 +36,14 @@ class ViewActivity : AppCompatActivity()
     var RJoystickStrength: Int = 0;
 
     var checkConPingPort: Int = 0;
+    val tcpPort: Int = 12347;
+    val rcvUDP_Port: Int = 12348;
 
     lateinit var VidErrorTxt: TextView;
 
     var threadsStarted: Boolean = false;
-    var WifiThread: Thread = Thread();
+    var SendWifiDataThread: Thread = Thread();
+    var RcvWifiDataThread: Thread = Thread();
     var ConnectionChecker: Thread = Thread();
     var UpdateThread: Thread = Thread();
 
@@ -108,27 +114,35 @@ class ViewActivity : AppCompatActivity()
         //THREADS
         threadsStarted = true;
 
-        WifiThread = Thread(Runnable {
+        SendWifiDataThread = Thread(Runnable {
             while (threadsStarted) {
                 SendPackets(cmd);
             }
         })
-        WifiThread!!.start();
+        SendWifiDataThread.start();
+
+        RcvWifiDataThread = Thread(Runnable {
+            while(threadsStarted)
+            {
+                RcvPackets();
+            }
+        })
+        RcvWifiDataThread.start();
 
         ConnectionChecker = Thread(Runnable {
             while (threadsStarted) {
-                //ConnectionCheck();
-                Thread.sleep(5000);
+                ConnectionCheck();
+                Thread.sleep(1500);
             }
         })
-        ConnectionChecker!!.start();
+        ConnectionChecker.start();
 
         UpdateThread = Thread(Runnable {
             while (threadsStarted) {
                 Update();
             }
         })
-        UpdateThread!!.start();
+        UpdateThread.start();
 
         print("ViewActivity() INIT FINISHED");
     }
@@ -180,132 +194,45 @@ class ViewActivity : AppCompatActivity()
         }
         finally
         {
-            if (socket != null)
-            {
-                socket.close();
-            }
+            socket.close()
         }
     }
-
-   /* fun ConnectionCheck()
-    {
-        try
-        {
-            println("Check Connection...");
-            connected = isHostAvailable(rpiIP, rpiPort, 10000);
-        }
-        catch (e: Exception)
-        {
-            print("Error: " + e.toString());
-        }
-
-    }*/
 
     fun ConnectionCheck()
     {
         try
         {
-            val timeout = 10000; //10s
-            val adr = InetAddress.getByName(rpiIP);
-            val port = this.rpiPort;
-            val buffer = ByteArray(4)
-            val socket = DatagramSocket();
-            socket.reuseAddress = true;
-            var data: ByteArray? = null;
-            val buffer2 = ByteArray(4);
-            val packet = DatagramPacket(buffer2, buffer.size);
-
-            SecureRandom.getInstanceStrong().nextBytes(buffer); //random bytes
-
-            val out = DatagramPacket(buffer, buffer.size, adr, port)
-            socket.send(out) // send to the server
-
-            while (true)
-            {
-                try
-                {
-                    //val rcvPacket = receiveUDP(port,buffer.size, timeout);
-
-                    var rcvPacket: DatagramPacket? = null;
-                    val socket = DatagramSocket(this.checkConPingPort);
-                    try
-                    {
-                        socket.soTimeout = timeout;
-                        val text: String
-                        val message = ByteArray(buffer.size)
-                        val p = DatagramPacket(message, message.size)
-                        socket.receive(p);
-                        rcvPacket = p;
-                    }
-                    catch (e: SocketTimeoutException)
-                    {
-                        println("Timeout reached!!! $e")
-                        socket.close()
-                    }
-                    catch (ex: IOException)
-                    {
-                        println(ex.message)
-                    }
-                    finally
-                    {
-                        socket.close()
-                    }
-
-                    if(rcvPacket == null) {
-                        print("Ping nicht erhalten.");
-                        connected = false;
-                        break;
-                    }
-                    //val rcvd = "received from " + rcvPacket.getAddress().toString() + ", " + rcvPacket.getPort().toString() + ": " + String(rcvPacket.getData(), 0, rcvPacket.getLength());
-                    //println(rcvd)
-                    connected = rcvPacket.data.contentEquals(buffer);
-                }
-                catch (e: SocketTimeoutException)
-                {
-                    println("Timeout reached: $e")
-                    socket.close()
-                    connected = false;
-                }
-            }
+            println("Check Connection...");
+            connected = isHostAvailable(this.rpiIP, this.tcpPort, 5000);
         }
-        catch (e1: SocketException)
+        catch (e: Exception)
         {
-            System.out.println("Socket closed " + e1);
-        }
-        catch (e: IOException)
-        {
-            e.printStackTrace();
+            print("ConnectionCheck-Error: " + e.toString());
         }
     }
 
-    fun receiveUDP(port: Int, bufferSize: Int, timeout: Int): DatagramPacket?
+    fun RcvPackets()
     {
-        val socket = DatagramSocket(port);
-        var tmp : DatagramPacket? = null;
+        val buffer = ByteArray(1024)
+        var socket: DatagramSocket? = null
         try
         {
-            socket.soTimeout = timeout;
-            val text: String
-            val message = ByteArray(bufferSize)
-            val p = DatagramPacket(message, message.size)
-            socket.receive(p);
-            tmp = p;
-            text = String(message, 0, p.length)
+            socket = DatagramSocket(this.rcvUDP_Port)
+            socket.broadcast = true
+            val packet = DatagramPacket(buffer, buffer.size)
+            socket.receive(packet)
+            val rcvMsg = String(packet.data, Charsets.UTF_8);
+            println("RcvPackets() packet received = " + rcvMsg);
 
         }
-        catch (e: SocketTimeoutException)
+        catch (e: Exception)
         {
-            println("Timeout reached!!! $e")
-            socket.close()
-        }
-        catch (ex: IOException)
-        {
-            println(ex.message)
+            println("RcvPackets-Error: " + e.toString())
+            e.printStackTrace()
         }
         finally
         {
-            socket.close()
-            return tmp;
+            socket?.close()
         }
     }
 
@@ -320,43 +247,40 @@ class ViewActivity : AppCompatActivity()
         }
         if(sendFlag == false)
         {
-            //if ((LJoystickAngle != 0 && LJoystickStrength != 0) || (RJoystickAngle != 0 && RJoystickStrength != 0))
-            //{
-                var Ldirection: String = "Unknown";
-                var Rdirection: String = "Unknown";
-                var LstrengthTmp: Float = 0.0F;
-                var RstrengthTmp: Float = 0.0F;
-                if(LJoystickStrength  != 0)
-                {
-                    LstrengthTmp = (LJoystickStrength.toFloat() / 10);
-                }
-                if(RJoystickStrength != 0)
-                {
-                    RstrengthTmp = (RJoystickStrength.toFloat() / 10);
-                }
+            var Ldirection: String = "Unknown";
+            var Rdirection: String = "Unknown";
+            var LstrengthTmp: Float = 0.0F;
+            var RstrengthTmp: Float = 0.0F;
+            if(LJoystickStrength  != 0)
+            {
+                LstrengthTmp = (LJoystickStrength.toFloat() / 10);
+            }
+            if(RJoystickStrength != 0)
+            {
+                RstrengthTmp = (RJoystickStrength.toFloat() / 10);
+            }
 
-                if (LJoystickAngle >= 0 && LJoystickAngle < 180) {
-                    Ldirection = "F";
-                }
-                if (LJoystickAngle >= 180 && LJoystickAngle < 360) {
-                    Ldirection = "B";
-                    LstrengthTmp = -(LstrengthTmp);
-                }
-                if (RJoystickAngle >= 90 && RJoystickAngle < 270) {
-                    Rdirection = "L";
-                    RstrengthTmp = -(RstrengthTmp);
-                }
-                if ((RJoystickAngle >= 270 && RJoystickAngle < 360) || (RJoystickAngle >= 0 && RJoystickAngle < 90)) {
-                    Rdirection = "R";
-                }
-                val Lstrength = (LstrengthTmp.roundToInt()).toString();
-                val Rstrength = (RstrengthTmp.roundToInt()).toString();
-                val sendString: String =
-                    Lstrength.plus("|").plus(Ldirection).plus("|").plus(Rstrength).plus("|")
-                        .plus(Rdirection);
+            if (LJoystickAngle >= 0 && LJoystickAngle < 180) {
+                Ldirection = "F";
+            }
+            if (LJoystickAngle >= 180 && LJoystickAngle < 360) {
+                Ldirection = "B";
+                LstrengthTmp = -(LstrengthTmp);
+            }
+            if (RJoystickAngle >= 90 && RJoystickAngle < 270) {
+                Rdirection = "L";
+                RstrengthTmp = -(RstrengthTmp);
+            }
+            if ((RJoystickAngle >= 270 && RJoystickAngle < 360) || (RJoystickAngle >= 0 && RJoystickAngle < 90)) {
+                Rdirection = "R";
+            }
+            val Lstrength = (LstrengthTmp.roundToInt()).toString();
+            val Rstrength = (RstrengthTmp.roundToInt()).toString();
+            val sendString: String =
+                Lstrength.plus("|").plus(Ldirection).plus("|").plus(Rstrength).plus("|")
+                    .plus(Rdirection);
 
-                SendCmds(sendString);
-            //}
+            SendCmds(sendString);
         }
     }
 
@@ -385,7 +309,7 @@ class ViewActivity : AppCompatActivity()
                     //address = InetAddress.getByName("192.168.2.114");
                     address = InetAddress.getByName(this.rpiIP) //  the address of the rpi
                     println("Msg: ".plus(cmd))
-                    println("Addresse: ".plus(address).plus(":").plus(port));
+                    //println("Addresse: ".plus(address).plus(":").plus(port));
                     packet = DatagramPacket(message, message.size, address, port!!.toInt())
                     println("Send bytes: ".plus(message));
                     try
