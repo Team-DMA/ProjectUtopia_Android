@@ -142,9 +142,6 @@ class MainActivity : AppCompatActivity()
             val buffer = ByteArray(6)
             val socket = DatagramSocket();
             socket.reuseAddress = true;
-            var data: ByteArray? = null;
-            val buffer2 = ByteArray(6);
-            val packet = DatagramPacket(buffer2, buffer.size);
 
             SecureRandom.getInstanceStrong().nextBytes(buffer); //random bytes
 
@@ -163,7 +160,6 @@ class MainActivity : AppCompatActivity()
                     try
                     {
                         socket.soTimeout = timeout;
-                        val text: String
                         val message = ByteArray(buffer.size)
                         val p = DatagramPacket(message, message.size)
                         socket.receive(p);
@@ -187,7 +183,7 @@ class MainActivity : AppCompatActivity()
                         println("Paket null");
                         break;
                     }
-                    println("Msg: ".plus(rcvPacket!!.data));
+                    println("Msg: ".plus(rcvPacket.data));
                     val rcvd =
                         "received from " + rcvPacket.getAddress().toString() + ", " + rcvPacket.getPort()
                             .toString() + ": " + String(

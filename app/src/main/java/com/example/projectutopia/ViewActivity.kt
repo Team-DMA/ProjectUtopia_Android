@@ -1,21 +1,16 @@
 package com.example.projectutopia
 
 import android.content.Intent
-import android.media.MediaPlayer
-import android.media.MediaPlayer.OnPreparedListener
-import android.net.Uri
+import android.graphics.Color
 import android.os.Bundle
+import android.view.MotionEvent
+import android.webkit.WebView
 import android.widget.TextView
 import android.widget.Toast
-import android.widget.VideoView
 import androidx.appcompat.app.AppCompatActivity
 import io.github.controlwear.virtual.joystick.android.JoystickView
 import java.io.IOException
-import java.io.PrintWriter
 import java.net.*
-import java.security.SecureRandom
-import java.util.*
-import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
 
@@ -62,7 +57,8 @@ class ViewActivity : AppCompatActivity()
             this.rpiIP = extras.getString("RPI_IP");
         }
 
-        val videoViewer = findViewById(R.id.videoView) as VideoView;
+        //val videoViewer = findViewById(R.id.videoView) as VideoView;
+        val webViewer = findViewById(R.id.webView) as WebView;
         val joystickFB = findViewById(R.id.joystickView1) as JoystickView;
         val joystickLR = findViewById(R.id.joystickView2) as JoystickView;
         val heightTxt = findViewById(R.id.height) as TextView;
@@ -79,14 +75,32 @@ class ViewActivity : AppCompatActivity()
         //VIDEO LIVESTREAM
         try
         {
-            val vidLink = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-            val video: Uri = Uri.parse(vidLink);
-            videoViewer.setVideoURI(video);
-            videoViewer.requestFocus();
+            if(this.rpiIP != null)
+            {
+                val vidLink = "http://"+this.rpiIP+":8080/stream/video.mjpeg"
+                webViewer.getSettings().setLoadWithOverviewMode(true);
+                webViewer.getSettings().setUseWideViewPort(true);
+                webViewer.getSettings().setSupportZoom(false);
+                webViewer.getSettings().setJavaScriptEnabled(true);
+                webViewer.setVerticalScrollBarEnabled(false);
+                webViewer.setHorizontalScrollBarEnabled(false);
+                webViewer.setBackgroundColor(Color.TRANSPARENT);
+                webViewer.isClickable = false;
+                webViewer.loadUrl(vidLink);
 
-            videoViewer.setOnPreparedListener(OnPreparedListener {
-                videoViewer.start()
-            })
+
+
+               /* val vidLink = "http://"+this.rpiIP+":8080/stream/video.mjpeg"
+                VidErrorTxt.setText(vidLink);
+                VidErrorTxt.visibility = TextView.VISIBLE;
+                val video: Uri = Uri.parse(vidLink);
+                videoViewer.setVideoURI(video);
+                videoViewer.requestFocus();
+
+                videoViewer.setOnPreparedListener(OnPreparedListener {
+                    videoViewer.start()
+                })*/
+            }
         }
         catch (e: Exception)
         {
@@ -104,12 +118,12 @@ class ViewActivity : AppCompatActivity()
             this.RJoystickStrength = strength;
         }
 
-        videoViewer.setOnErrorListener(MediaPlayer.OnErrorListener { mediaPlayer, i, i1 ->
+        /*videoViewer.setOnErrorListener(MediaPlayer.OnErrorListener { mediaPlayer, i, i1 ->
             errorInVideo(null);
-            Thread.sleep(2000);
+            Thread.sleep(5000);
             BackToMainMenu();
             true
-        })
+        })*/
 
         //THREADS
         threadsStarted = true;
@@ -122,8 +136,7 @@ class ViewActivity : AppCompatActivity()
         SendWifiDataThread.start();
 
         RcvWifiDataThread = Thread(Runnable {
-            while(threadsStarted)
-            {
+            while (threadsStarted) {
                 RcvPackets();
             }
         })
@@ -300,9 +313,9 @@ class ViewActivity : AppCompatActivity()
                 {
                     val port: Int? = this.rpiPort;
                     val message = cmd.toByteArray(Charsets.UTF_8)
-                    var packet: DatagramPacket? = null
-                    var address: InetAddress? = null
-                    var socket: DatagramSocket? = null
+                    var packet: DatagramPacket?;
+                    var address: InetAddress?;
+                    var socket: DatagramSocket?;
                     // Create a datagram socket
                     socket = DatagramSocket()
                     // Get the internet address of the host
