@@ -104,7 +104,8 @@ class ViewActivity : AppCompatActivity()
         }
         catch (e: Exception)
         {
-            errorInVideo(e);
+            //debug
+            //errorInVideo(e);
         }
 
         //LISTENER
@@ -216,7 +217,8 @@ class ViewActivity : AppCompatActivity()
         try
         {
             println("Check Connection...");
-            connected = isHostAvailable(this.rpiIP, this.tcpPort, 5000);
+            connected = true; //debug
+            //connected = isHostAvailable(this.rpiIP, this.tcpPort, 5000);
         }
         catch (e: Exception)
         {
