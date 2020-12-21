@@ -156,19 +156,19 @@ class MainActivity : AppCompatActivity()
 
                     //val rcvPacket = receiveUDP(buffer.size, timeout);
                     var rcvPacket: DatagramPacket? = null;
-                    val socket = DatagramSocket(pingPort);
+                    val sSocket = DatagramSocket(pingPort);
                     try
                     {
-                        socket.soTimeout = timeout;
+                        sSocket.soTimeout = timeout;
                         val message = ByteArray(buffer.size)
                         val p = DatagramPacket(message, message.size)
-                        socket.receive(p);
+                        sSocket.receive(p);
                         rcvPacket = p;
                     }
                     catch (e: SocketTimeoutException)
                     {
                         println("Timeout reached!!! $e")
-                        socket.close()
+                        sSocket.close()
                     }
                     catch (ex: IOException)
                     {
@@ -176,7 +176,7 @@ class MainActivity : AppCompatActivity()
                     }
                     finally
                     {
-                        socket.close()
+                        sSocket.close()
                     }
 
                     if(rcvPacket == null) {

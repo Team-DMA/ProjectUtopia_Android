@@ -6,42 +6,41 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <LinearLayout
-        android:id="@+id/linearLayout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="40dp" />
-
-        <ImageView
-            android:id="@+id/imageView"
-            android:layout_width="match_parent"
-            android:layout_height="117dp"
-            android:baselineAlignBottom="false"
-            app:srcCompat="@drawable/drone" />
-
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="40dp" />
-
-        <TextView
-            android:id="@+id/txt_ipAdr"
+        <LinearLayout
+            android:id="@+id/linearLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Raspberry IP Adresse:" />
+            android:gravity="center"
+            android:orientation="vertical">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="40dp" />
+
+            <ImageView
+                android:id="@+id/imageView"
+                android:layout_width="match_parent"
+                android:layout_height="117dp"
+                android:baselineAlignBottom="false"
+                app:srcCompat="@drawable/drone" />
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="40dp" />
+
+            <TextView
+                android:id="@+id/txt_ipAdr"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Raspberry IP Adresse:" />
 
             <EditText
                 android:id="@+id/ipAdr"
@@ -55,62 +54,41 @@
                 android:singleLine="true"
                 tools:ignore="LabelFor" />
 
-            <!--   <TextView
-                   android:id="@+id/textView"
-                   android:layout_width="wrap_content"
-                   android:layout_height="wrap_content"
-                   android:layout_weight="0"
-                   android:text="@string/_doppelpunkt" />
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="20dp" />
 
-               <EditText
-                   android:id="@+id/portAdr"
-                   android:layout_width="wrap_content"
-                   android:layout_height="70dp"
-                   android:layout_weight="1"
-                   android:autofillHints="Port"
-                   android:digits="0123456789"
-                   android:ems="10"
-                   android:hint="12345"
-                   android:inputType="number"
-                   android:singleLine="true"
-                   tools:ignore="LabelFor" /> -->
+            <br.com.simplepass.loadingbutton.customViews.CircularProgressButton
+                android:id="@+id/btnConnect"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/circle"
+                android:text="VERBINDEN"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                app:spinning_bar_color="#FFFFFF"
+                app:spinning_bar_padding="8dp"
+                app:spinning_bar_width="5dp"
+
+                />
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="250dp" />
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Meine IP:" />
+
+            <Button
+                android:id="@+id/buttonDebug"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Debug" />
         </LinearLayout>
-
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="20dp" />
-
-        <br.com.simplepass.loadingbutton.customViews.CircularProgressButton
-            android:id="@+id/btnConnect"
-            android:background="@drawable/circle"
-            android:layout_height="100dp"
-            android:layout_width="100dp"
-            android:layout_gravity="center_horizontal"
-            android:text="VERBINDEN"
-            android:textStyle="bold"
-            android:textColor="#FFFFFF"
-            app:spinning_bar_width="5dp"
-            app:spinning_bar_padding="8dp"
-            app:spinning_bar_color="#FFFFFF"
-
-        />
-
-        <View
-            android:layout_width="1dp"
-            android:layout_height="0dp"
-            android:layout_weight="1"/>
-
-        <TextView
-            android:id="@+id/textView2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="TextView" />
-
-        <Button
-            android:id="@+id/buttonDebug"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Debug" />
-    </LinearLayout>
+    </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

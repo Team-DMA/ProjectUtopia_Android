@@ -10,6 +10,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import eo.view.batterymeter.BatteryMeterView
 import io.github.controlwear.virtual.joystick.android.JoystickView
 import java.io.IOException
 import java.net.*
@@ -39,6 +40,8 @@ class ViewActivity : AppCompatActivity()
     lateinit var picCompass: ImageView;
     lateinit var heightTxt: TextView;
     lateinit var tempTxt: TextView;
+    lateinit var batteryStatus: BatteryMeterView;
+    lateinit var batteryLevel: TextView;
 
     lateinit var VidErrorTxt: TextView;
 
@@ -84,6 +87,11 @@ class ViewActivity : AppCompatActivity()
         blackscreen.visibility = View.INVISIBLE;
 
         picCompass = findViewById(R.id.compassPic) as ImageView;
+
+        batteryStatus = findViewById(R.id.batteryView) as BatteryMeterView;
+        batteryLevel = findViewById(R.id.batteryLevel) as TextView;
+        batteryStatus.isCharging = false;
+        changeBatteryLevel((1..99).random().toInt());
 
         //INIT
         cmd = "InitMsg";
@@ -178,40 +186,31 @@ class ViewActivity : AppCompatActivity()
             while (threadsStarted) {
 
                 //debug SIMULATED VALUES
-                try
-                {
+                try {
                     Thread.sleep(1000);
 
                     //height simulation
-                    val valHeight = ((heightTxt.text.toString().split("m").toTypedArray())[0]).toInt();
+                    val valHeight =
+                        ((heightTxt.text.toString().split("m").toTypedArray())[0]).toInt();
                     var rdmHeight = 0;
-                    if(valHeight >= 140 && valHeight <= 1360)
-                    {
+                    if (valHeight >= 140 && valHeight <= 1360) {
                         rdmHeight = (-10..10).random().toInt();
-                    }
-                    else if(valHeight < 140)
-                    {
+                    } else if (valHeight < 140) {
                         rdmHeight = (1..20).random().toInt();
-                    }
-                    else if(valHeight > 1360)
-                    {
+                    } else if (valHeight > 1360) {
                         rdmHeight = (-20..-1).random().toInt();
                     }
                     heightTxt.setText((valHeight + rdmHeight).toString().plus("m"));
 
                     //temperature simulation
-                    val valTemp = ((tempTxt.text.toString().split("\u2103").toTypedArray())[0]).toInt();
+                    val valTemp =
+                        ((tempTxt.text.toString().split("\u2103").toTypedArray())[0]).toInt();
                     var rdmTemp = 0;
-                    if(valTemp >= 5 && valTemp <= 35)
-                    {
+                    if (valTemp >= 5 && valTemp <= 35) {
                         rdmTemp = (-3..3).random().toInt();
-                    }
-                    else if(valTemp < 5)
-                    {
+                    } else if (valTemp < 5) {
                         rdmTemp = (3..6).random().toInt();
-                    }
-                    else if(valTemp > 35)
-                    {
+                    } else if (valTemp > 35) {
                         rdmTemp = (-6..-3).random().toInt();
                     }
                     tempTxt.setText((valTemp + rdmTemp).toString().plus("\u2103"));
@@ -220,12 +219,17 @@ class ViewActivity : AppCompatActivity()
                     val rdmFloat = (-40..40).random().toFloat();
                     runOnUiThread {
                         val runnable: Runnable = object : Runnable {
-                            override fun run()
-                            {
-                                picCompass.animate().rotationBy(rdmFloat).withEndAction(this).setDuration(950).setInterpolator(LinearInterpolator()).start()
+                            override fun run() {
+                                picCompass.animate().rotationBy(rdmFloat).withEndAction(this)
+                                    .setDuration(
+                                        950
+                                    ).setInterpolator(LinearInterpolator()).start()
                             }
                         }
-                        picCompass.animate().rotationBy(rdmFloat).withEndAction(runnable).setDuration(950).setInterpolator(LinearInterpolator()).start()
+                        picCompass.animate().rotationBy(rdmFloat).withEndAction(runnable)
+                            .setDuration(
+                                950
+                            ).setInterpolator(LinearInterpolator()).start()
                     }
 
                 } catch (e: Exception) {
@@ -282,6 +286,12 @@ class ViewActivity : AppCompatActivity()
         super.onBackPressed();
 
         BackToMainMenu();
+    }
+
+    fun changeBatteryLevel(value: Int)
+    {
+        batteryStatus.chargeLevel = value;
+        batteryLevel.setText(value.toString().plus("%"));
     }
 
     fun isHostAvailable(host: String?, port: Int, timeout: Int): Boolean
