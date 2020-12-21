@@ -79,7 +79,7 @@
 
         <ImageView
             android:id="@+id/compassPic"
-            android:layout_width="383dp"
+            android:layout_width="78dp"
             android:layout_height="78dp"
             android:layout_marginBottom="27dp"
             app:layout_constraintBottom_toBottomOf="parent"

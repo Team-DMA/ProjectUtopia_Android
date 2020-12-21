@@ -2,16 +2,14 @@ package com.example.projectutopia
 
 import android.content.Intent
 import android.graphics.Color
-import android.graphics.ColorMatrix
-import android.graphics.ColorMatrixColorFilter
 import android.os.Bundle
 import android.view.View
+import android.view.animation.LinearInterpolator
 import android.webkit.WebView
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isVisible
 import io.github.controlwear.virtual.joystick.android.JoystickView
 import java.io.IOException
 import java.net.*
@@ -37,6 +35,10 @@ class ViewActivity : AppCompatActivity()
     var checkConPingPort: Int = 0;
     val tcpPort: Int = 12347;
     val rcvUDP_Port: Int = 12348;
+
+    lateinit var picCompass: ImageView;
+    lateinit var heightTxt: TextView;
+    lateinit var tempTxt: TextView;
 
     lateinit var VidErrorTxt: TextView;
 
@@ -69,10 +71,10 @@ class ViewActivity : AppCompatActivity()
         val webViewer = findViewById(R.id.webView) as WebView;
         val joystickFB = findViewById(R.id.joystickView1) as JoystickView;
         val joystickLR = findViewById(R.id.joystickView2) as JoystickView;
-        val heightTxt = findViewById(R.id.height) as TextView;
+        heightTxt = findViewById(R.id.height) as TextView;
         heightTxt.setText((100..1400).random().toString().plus("m"));
-        val tempTxt = findViewById(R.id.temp) as TextView;
-        tempTxt.setText((10..35).random().toString().plus("\u2103"));
+        tempTxt = findViewById(R.id.temp) as TextView;
+        tempTxt.setText((5..35).random().toString().plus("\u2103"));
 
         VidErrorTxt = findViewById(R.id.VideoErrorText) as TextView;
         VidErrorTxt.setText("No Error"); //DEFAULT
@@ -80,6 +82,8 @@ class ViewActivity : AppCompatActivity()
         //blackscreen
         val blackscreen = findViewById(R.id.blackscreenView) as ImageView;
         blackscreen.visibility = View.INVISIBLE;
+
+        picCompass = findViewById(R.id.compassPic) as ImageView;
 
         //INIT
         cmd = "InitMsg";
@@ -172,7 +176,65 @@ class ViewActivity : AppCompatActivity()
 
         RcvWifiDataThread = Thread(Runnable {
             while (threadsStarted) {
-                RcvPackets();
+
+                //debug SIMULATED VALUES
+                try
+                {
+                    Thread.sleep(1000);
+
+                    //height simulation
+                    val valHeight = ((heightTxt.text.toString().split("m").toTypedArray())[0]).toInt();
+                    var rdmHeight = 0;
+                    if(valHeight >= 140 && valHeight <= 1360)
+                    {
+                        rdmHeight = (-10..10).random().toInt();
+                    }
+                    else if(valHeight < 140)
+                    {
+                        rdmHeight = (1..20).random().toInt();
+                    }
+                    else if(valHeight > 1360)
+                    {
+                        rdmHeight = (-20..-1).random().toInt();
+                    }
+                    heightTxt.setText((valHeight + rdmHeight).toString().plus("m"));
+
+                    //temperature simulation
+                    val valTemp = ((tempTxt.text.toString().split("\u2103").toTypedArray())[0]).toInt();
+                    var rdmTemp = 0;
+                    if(valTemp >= 5 && valTemp <= 35)
+                    {
+                        rdmTemp = (-3..3).random().toInt();
+                    }
+                    else if(valTemp < 5)
+                    {
+                        rdmTemp = (3..6).random().toInt();
+                    }
+                    else if(valTemp > 35)
+                    {
+                        rdmTemp = (-6..-3).random().toInt();
+                    }
+                    tempTxt.setText((valTemp + rdmTemp).toString().plus("\u2103"));
+
+                    //compass simulation
+                    val rdmFloat = (-40..40).random().toFloat();
+                    runOnUiThread {
+                        val runnable: Runnable = object : Runnable {
+                            override fun run()
+                            {
+                                picCompass.animate().rotationBy(rdmFloat).withEndAction(this).setDuration(950).setInterpolator(LinearInterpolator()).start()
+                            }
+                        }
+                        picCompass.animate().rotationBy(rdmFloat).withEndAction(runnable).setDuration(950).setInterpolator(LinearInterpolator()).start()
+                    }
+
+                } catch (e: Exception) {
+                    println("RcvWifiDataThread-Error: " + e.toString())
+                    e.printStackTrace()
+                }
+
+
+                //RcvPackets();
             }
         })
         RcvWifiDataThread.start();
@@ -357,10 +419,10 @@ class ViewActivity : AppCompatActivity()
                     // Get the internet address of the host
                     //address = InetAddress.getByName("192.168.2.114");
                     address = InetAddress.getByName(this.rpiIP) //  the address of the rpi
-                    println("Msg: ".plus(cmd))
+                    //println("Msg: ".plus(cmd))
                     //println("Addresse: ".plus(address).plus(":").plus(port));
                     packet = DatagramPacket(message, message.size, address, port!!.toInt())
-                    println("Send bytes: ".plus(message));
+                    //println("Send bytes: ".plus(message));
                     try
                     {
                         //SEND
