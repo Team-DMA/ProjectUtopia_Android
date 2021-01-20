@@ -10,6 +10,8 @@ import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Size
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import br.com.simplepass.loadingbutton.customViews.CircularProgressButton
@@ -30,6 +32,11 @@ class MainActivity : AppCompatActivity()
 
     var wifiModuleIp: String? = null;
     var wifiModulePort: Int? = null;
+
+    //standard für Konstanten
+    var rPi_Kd: Float = 1.00F;
+    var rPi_Ki: Float = 1.00F;
+    var rPi_Kp: Float = 1.00F;
 
     val pingPort: Int = 12346;
 
@@ -52,6 +59,29 @@ class MainActivity : AppCompatActivity()
         txtAddressIP = findViewById(R.id.ipAdr) as EditText;
         //txtAddressPort = findViewById(R.id.portAdr) as EditText;
 
+        val advCheckBox = findViewById(R.id.optionsCheckBox) as CheckBox;
+        val layoutForKd = findViewById(R.id.layoutKd) as LinearLayout;
+        val layoutForKi = findViewById(R.id.layoutKi) as LinearLayout;
+        val layoutForKp = findViewById(R.id.layoutKp) as LinearLayout;
+        val textKd = findViewById(R.id.editTextKd) as EditText;
+        val textKi = findViewById(R.id.editTextKi) as EditText;
+        val textKp = findViewById(R.id.editTextKp) as EditText;
+
+        advCheckBox.setOnClickListener {
+            if(advCheckBox.isChecked)
+            {
+                layoutForKd.visibility = View.VISIBLE;
+                layoutForKi.visibility = View.VISIBLE;
+                layoutForKp.visibility = View.VISIBLE;
+            }
+            else if(!advCheckBox.isChecked)
+            {
+                layoutForKd.visibility = View.GONE;
+                layoutForKi.visibility = View.GONE;
+                layoutForKp.visibility = View.GONE;
+            }
+        }
+
         //DEBUG
         val txtViewTest = findViewById(R.id.textView2) as TextView;
         val btnDebug = findViewById(R.id.buttonDebug) as Button;
@@ -67,7 +97,23 @@ class MainActivity : AppCompatActivity()
         buttonConnect = findViewById(R.id.btnConnect) as CircularProgressButton;
         buttonConnect.setOnClickListener()
         {
-            if(txtAddressIP!!.text.isNotEmpty() /*&& txtAddressPort!!.text.isNotEmpty()*/) {
+            if(txtAddressIP!!.text.isNotEmpty() /*&& txtAddressPort!!.text.isNotEmpty()*/)
+            {
+                if(advCheckBox.isChecked)
+                {
+                    if(textKd.text.isNotEmpty())
+                    {
+                        this.rPi_Kd = textKd.text.toString().toFloat();
+                    }
+                    if(textKi.text.isNotEmpty())
+                    {
+                        this.rPi_Ki = textKi.text.toString().toFloat();
+                    }
+                    if(textKp.text.isNotEmpty())
+                    {
+                        this.rPi_Kp = textKp.text.toString().toFloat();
+                    }
+                }
                 buttonConnect.startAnimation();
                 buttonConnect.isClickable = false;
                 getIPandPort();
@@ -139,11 +185,16 @@ class MainActivity : AppCompatActivity()
     {
         try
         {
-            val buffer = ByteArray(6)
+            var buffer = ByteArray(6)
             val socket = DatagramSocket();
             socket.reuseAddress = true;
 
             SecureRandom.getInstanceStrong().nextBytes(buffer); //random bytes
+            val tmpString = "|" + this.rPi_Kp.toString() + "|" + this.rPi_Ki.toString() + "|" + this.rPi_Kd.toString();
+            val tmp1 = buffer.toString();
+            val tmp2 = tmp1 + tmpString;
+            buffer = (tmp2).toByteArray(Charsets.UTF_8);
+
 
             val out = DatagramPacket(buffer, buffer.size, adr, port)
             socket.send(out) // send to the server

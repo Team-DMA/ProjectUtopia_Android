@@ -54,6 +54,88 @@
                 android:singleLine="true"
                 tools:ignore="LabelFor" />
 
+            <CheckBox
+                android:id="@+id/optionsCheckBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Erweiterte Einstellungen" />
+
+            <LinearLayout
+                android:id="@+id/layoutKd"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/textKd"
+                    android:layout_width="wrap_content"
+                    android:layout_height="22dp"
+                    android:text="@string/kd"
+                    android:textAlignment="viewStart" />
+
+                <EditText
+                    android:id="@+id/editTextKd"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:digits="0123456789."
+                    android:ems="10"
+                    android:hint="1.0"
+                    android:inputType="number|numberDecimal"
+                    android:maxLength="4" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layoutKi"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/textKi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="22dp"
+                    android:text="@string/ki" />
+
+                <EditText
+                    android:id="@+id/editTextKi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:digits="0123456789."
+                    android:ems="10"
+                    android:hint="1.0"
+                    android:inputType="number|numberDecimal"
+                    android:maxLength="4" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layoutKp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/textKp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="26dp"
+                    android:text="@string/kp" />
+
+                <EditText
+                    android:id="@+id/editTextKp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:digits="0123456789."
+                    android:ems="10"
+                    android:hint="1.0"
+                    android:inputType="number|numberDecimal"
+                    android:maxLength="4" />
+            </LinearLayout>
+
             <Space
                 android:layout_width="match_parent"
                 android:layout_height="20dp" />

@@ -6,4 +6,7 @@
     <string name="_doppelpunkt">:</string>
     <string name="_21567">21567</string>
     <string name="_batteryLevelString">80%</string>
+    <string name="kd">K<sub> d</sub> :   </string>
+    <string name="ki">K<sub> i</sub> :   </string>
+    <string name="kp">K<sub> p</sub> :   </string>
 </resources>

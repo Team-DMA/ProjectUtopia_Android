@@ -368,8 +368,6 @@ class ViewActivity : AppCompatActivity()
         }
         if(sendFlag == false)
         {
-            var Ldirection: String = "Unknown";
-            var Rdirection: String = "Unknown";
             var LstrengthTmp: Float = 0.0F;
             var RstrengthTmp: Float = 0.0F;
             if(LJoystickStrength  != 0)
@@ -382,24 +380,19 @@ class ViewActivity : AppCompatActivity()
             }
 
             if (LJoystickAngle >= 0 && LJoystickAngle < 180) {
-                Ldirection = "F";
             }
             if (LJoystickAngle >= 180 && LJoystickAngle < 360) {
-                Ldirection = "B";
                 LstrengthTmp = -(LstrengthTmp);
             }
             if (RJoystickAngle >= 90 && RJoystickAngle < 270) {
-                Rdirection = "L";
                 RstrengthTmp = -(RstrengthTmp);
             }
             if ((RJoystickAngle >= 270 && RJoystickAngle < 360) || (RJoystickAngle >= 0 && RJoystickAngle < 90)) {
-                Rdirection = "R";
             }
             val Lstrength = (LstrengthTmp.roundToInt()).toString();
             val Rstrength = (RstrengthTmp.roundToInt()).toString();
             val sendString: String =
-                Lstrength.plus("|").plus(Ldirection).plus("|").plus(Rstrength).plus("|")
-                    .plus(Rdirection);
+                Lstrength.plus("|").plus(Rstrength).plus("|");
 
             SendCmds(sendString);
         }
