@@ -12,6 +12,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import eo.view.batterymeter.BatteryMeterView
 import io.github.controlwear.virtual.joystick.android.JoystickView
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import java.io.IOException
 import java.net.*
 import kotlin.math.roundToInt
@@ -51,6 +53,10 @@ class ViewActivity : AppCompatActivity()
     var ConnectionChecker: Thread = Thread();
     var UpdateThread: Thread = Thread();
 
+    //blackscreen
+    lateinit var blackscreen: ImageView;
+
+
     override fun onCreate(savedInstanceState: Bundle?)
     {
         super.onCreate(savedInstanceState)
@@ -83,7 +89,7 @@ class ViewActivity : AppCompatActivity()
         VidErrorTxt.setText("No Error"); //DEFAULT
         VidErrorTxt.visibility = TextView.INVISIBLE; //INVISIBLE
         //blackscreen
-        val blackscreen = findViewById(R.id.blackscreenView) as ImageView;
+        blackscreen = findViewById(R.id.blackscreenView) as ImageView;
         blackscreen.visibility = View.INVISIBLE;
 
         picCompass = findViewById(R.id.compassPic) as ImageView;
@@ -110,12 +116,65 @@ class ViewActivity : AppCompatActivity()
             else
             {
                 val vidLink = "http://"+this.rpiIP+":8080/stream/video.mjpeg"
-                val url = URL(vidLink)
-                val connection = url.openConnection() as HttpURLConnection
-                val code = connection.responseCode
+                //val url = URL(vidLink)
+                //val connection = url.openConnection() as HttpURLConnection
+                //val code = connection.responseCode
 
-                if (code == 200)
+                //if (code == 200)
+                //{
+                // reachable
+                webViewer.getSettings().setLoadWithOverviewMode(true);
+                webViewer.getSettings().setUseWideViewPort(true);
+                webViewer.getSettings().setSupportZoom(false);
+                webViewer.getSettings().setJavaScriptEnabled(true);
+                webViewer.setVerticalScrollBarEnabled(false);
+                webViewer.setHorizontalScrollBarEnabled(false);
+                webViewer.setBackgroundColor(Color.TRANSPARENT);
+                webViewer.isClickable = false;
+                webViewer.loadUrl(vidLink);
+                /*}
+                else
                 {
+                    blackscreen.visibility = View.VISIBLE;
+                    VidErrorTxt.setText("Can't load video.");
+                    VidErrorTxt.visibility = TextView.VISIBLE;
+                }*/
+            }
+            /* val vidLink = "http://"+this.rpiIP+":8080/stream/video.mjpeg"
+             VidErrorTxt.setText(vidLink);
+             VidErrorTxt.visibility = TextView.VISIBLE;
+             val video: Uri = Uri.parse(vidLink);
+             videoViewer.setVideoURI(video);
+             videoViewer.requestFocus();
+
+             videoViewer.setOnPreparedListener(OnPreparedListener {
+                 videoViewer.start()
+             })*/
+        }
+        catch (e: Exception)
+        {
+            //debug
+            errorInVideo(e);
+        }
+        /*GlobalScope.async {
+            try
+            {
+                if(rpiIP.isNullOrEmpty())
+                {
+                    blackscreen.visibility = View.VISIBLE;
+                    VidErrorTxt.setText("Can't load video.");
+                    VidErrorTxt.visibility = TextView.VISIBLE;
+                }
+                else
+                {
+                    val vidLink = "http://www.google.com/"
+                    //val vidLink = "http://"+this.rpiIP+":8080/stream/video.mjpeg"
+                    //val url = URL(vidLink)
+                    //val connection = url.openConnection() as HttpURLConnection
+                    //val code = connection.responseCode
+
+                    //if (code == 200)
+                    //{
                     // reachable
                     webViewer.getSettings().setLoadWithOverviewMode(true);
                     webViewer.getSettings().setUseWideViewPort(true);
@@ -126,33 +185,32 @@ class ViewActivity : AppCompatActivity()
                     webViewer.setBackgroundColor(Color.TRANSPARENT);
                     webViewer.isClickable = false;
                     webViewer.loadUrl(vidLink);
+                    /*}
+                    else
+                    {
+                        blackscreen.visibility = View.VISIBLE;
+                        VidErrorTxt.setText("Can't load video.");
+                        VidErrorTxt.visibility = TextView.VISIBLE;
+                    }*/
                 }
-                else
-                {
-                    blackscreen.visibility = View.VISIBLE;
-                    VidErrorTxt.setText("Can't load video.");
-                    VidErrorTxt.visibility = TextView.VISIBLE;
-                }
+                /* val vidLink = "http://"+this.rpiIP+":8080/stream/video.mjpeg"
+                 VidErrorTxt.setText(vidLink);
+                 VidErrorTxt.visibility = TextView.VISIBLE;
+                 val video: Uri = Uri.parse(vidLink);
+                 videoViewer.setVideoURI(video);
+                 videoViewer.requestFocus();
+
+                 videoViewer.setOnPreparedListener(OnPreparedListener {
+                     videoViewer.start()
+                 })*/
             }
+            catch (e: Exception)
+            {
+                //debug
+                errorInVideo(e);
+            }
+        }*/
 
-
-
-           /* val vidLink = "http://"+this.rpiIP+":8080/stream/video.mjpeg"
-            VidErrorTxt.setText(vidLink);
-            VidErrorTxt.visibility = TextView.VISIBLE;
-            val video: Uri = Uri.parse(vidLink);
-            videoViewer.setVideoURI(video);
-            videoViewer.requestFocus();
-
-            videoViewer.setOnPreparedListener(OnPreparedListener {
-                videoViewer.start()
-            })*/
-        }
-        catch (e: Exception)
-        {
-            //debug
-            //errorInVideo(e);
-        }
 
         //LISTENER
         joystickFB.setOnMoveListener{ angle, strength ->
@@ -270,12 +328,16 @@ class ViewActivity : AppCompatActivity()
     {
         if(error != null)
         {
-            VidErrorTxt.setText("Error beim Laden: " + error.toString());
+            blackscreen.visibility = View.VISIBLE;
+            VidErrorTxt.setText("Error: " + error.toString());
+            VidErrorTxt.visibility = TextView.VISIBLE;
             println("Video-Error: " + error.toString());
         }
         else
         {
-            VidErrorTxt.setText("Error beim Laden.");
+            blackscreen.visibility = View.VISIBLE;
+            VidErrorTxt.setText("Unbekannter Error beim Laden.");
+            VidErrorTxt.visibility = TextView.VISIBLE;
             println("Video-Error.");
         }
         VidErrorTxt.visibility = TextView.VISIBLE;
@@ -392,7 +454,7 @@ class ViewActivity : AppCompatActivity()
             val Lstrength = (LstrengthTmp.roundToInt()).toString();
             val Rstrength = (RstrengthTmp.roundToInt()).toString();
             val sendString: String =
-                Lstrength.plus("|").plus(Rstrength).plus("|");
+                Lstrength.plus("|").plus(Rstrength);
 
             SendCmds(sendString);
         }
