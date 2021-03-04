@@ -16,6 +16,9 @@
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
         android:theme="@style/AppTheme">
+
+        <meta-data android:name="OnlineMaps.Key" android:value="pmvMyh5CVggUn457E7dHBLI0JeCNuqeQ" />
+
         <activity android:name=".ViewActivity" android:screenOrientation="sensorLandscape" android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen">
         </activity>
         <activity android:name=".MainActivity" android:theme="@style/Theme.AppCompat.Light.NoTitleBar" android:windowSoftInputMode="stateHidden">

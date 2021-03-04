@@ -34,9 +34,10 @@ class MainActivity : AppCompatActivity()
     var wifiModulePort: Int? = null;
 
     //standard für Konstanten
-    var rPi_Kd: Float = 1.00F;
-    var rPi_Ki: Float = 1.00F;
     var rPi_Kp: Float = 1.00F;
+    var rPi_Ki: Float = 1.00F;
+    var rPi_Kd: Float = 1.00F;
+
 
     val pingPort: Int = 12346;
 

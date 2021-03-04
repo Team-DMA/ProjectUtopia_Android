@@ -1,6 +1,8 @@
 package com.example.projectutopia
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
@@ -9,17 +11,21 @@ import android.webkit.WebView
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.NonNull
 import androidx.appcompat.app.AppCompatActivity
+import com.tomtom.online.sdk.common.location.LatLng
+import com.tomtom.online.sdk.map.*
+import com.tomtom.online.sdk.map.gestures.GesturesConfiguration
 import eo.view.batterymeter.BatteryMeterView
 import io.github.controlwear.virtual.joystick.android.JoystickView
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import java.io.BufferedInputStream
 import java.io.IOException
+import java.io.InputStream
 import java.net.*
 import kotlin.math.roundToInt
 
 
-class ViewActivity : AppCompatActivity()
+class ViewActivity : AppCompatActivity(), OnMapReadyCallback
 {
 
     var connected: Boolean = false;
@@ -35,6 +41,8 @@ class ViewActivity : AppCompatActivity()
     var RJoystickAngle: Int = 0;
     var RJoystickStrength: Int = 0;
 
+    private lateinit var map: TomtomMap
+
     var checkConPingPort: Int = 0;
     val tcpPort: Int = 12347;
     val rcvUDP_Port: Int = 12348;
@@ -44,6 +52,7 @@ class ViewActivity : AppCompatActivity()
     lateinit var tempTxt: TextView;
     lateinit var batteryStatus: BatteryMeterView;
     lateinit var batteryLevel: TextView;
+    lateinit var mapsImage: ImageView;
 
     lateinit var VidErrorTxt: TextView;
 
@@ -81,9 +90,9 @@ class ViewActivity : AppCompatActivity()
         val joystickFB = findViewById(R.id.joystickView1) as JoystickView;
         val joystickLR = findViewById(R.id.joystickView2) as JoystickView;
         heightTxt = findViewById(R.id.height) as TextView;
-        heightTxt.setText((100..1400).random().toString().plus("m"));
+       // heightTxt.setText((100..1400).random().toString().plus("m"));
         tempTxt = findViewById(R.id.temp) as TextView;
-        tempTxt.setText((5..35).random().toString().plus("\u2103"));
+        //tempTxt.setText((5..35).random().toString().plus("\u2103"));
 
         VidErrorTxt = findViewById(R.id.VideoErrorText) as TextView;
         VidErrorTxt.setText("No Error"); //DEFAULT
@@ -94,10 +103,12 @@ class ViewActivity : AppCompatActivity()
 
         picCompass = findViewById(R.id.compassPic) as ImageView;
 
+        val mapFragment = supportFragmentManager.findFragmentById(R.id.mapFragment) as MapFragment
+        mapFragment.getAsyncMap(this)
+
         batteryStatus = findViewById(R.id.batteryView) as BatteryMeterView;
         batteryLevel = findViewById(R.id.batteryLevel) as TextView;
         batteryStatus.isCharging = false;
-        changeBatteryLevel((1..99).random().toInt());
 
         //INIT
         cmd = "InitMsg";
@@ -245,8 +256,67 @@ class ViewActivity : AppCompatActivity()
 
                 //debug SIMULATED VALUES
                 try {
+
+                    val rcvMsgs = RcvPackets();
+
+                    val splittedMsg = rcvMsgs?.split("|");
+
+                    val compassValueString = splittedMsg?.elementAt(0);
+                    val tempValueString = splittedMsg?.elementAt(1)
+                    val altValueString = splittedMsg?.elementAt(2);
+                    val pressValueString = splittedMsg?.elementAt(3);
+                    val gpsLongString = splittedMsg?.elementAt(4);
+                    val gpsLatString = splittedMsg?.elementAt(5);
+                    val gpsAltString = splittedMsg?.elementAt(6);
+                    val batteryValueString = splittedMsg?.elementAt(7);
+
+                    val tempValue = ((tempValueString)?.toFloat())?.roundToInt();
+                    val tempString = tempValue.toString();
+
+                    val altValue = ((altValueString)?.toFloat())?.roundToInt();
+                    val altString = altValue.toString();
+
+                    val batteryValue = ((batteryValueString)?.toFloat())?.roundToInt();
+
+                    //height
+                    heightTxt.setText((altString + "m"));
+                    //temp
+                    tempTxt.setText(tempString.plus("\u2103"));
+                    //battery
+                    changeBatteryLevel(batteryValue);
+
+                    //map
+                    val compassValue = compassValueString?.toFloat();
+
+                    val gpsLatValue = gpsLatString?.toDouble();
+                    val gpsLongValue = gpsLongString?.toDouble();
+                    if (compassValue != null && gpsLatValue != null && gpsLongValue != null) {
+                        setUpMap(gpsLatValue, gpsLongValue, compassValue)
+                    }
+
+                    //compass
+                    runOnUiThread {
+                        val runnable: Runnable = object : Runnable {
+                            override fun run() {
+                                if (compassValue != null) {
+                                    picCompass.animate().rotation(compassValue).withEndAction(this)
+                                        .setDuration(
+                                            950
+                                        ).setInterpolator(LinearInterpolator()).start()
+                                }
+                            }
+                        }
+                        if (compassValue != null) {
+                            picCompass.animate().rotation(compassValue).withEndAction(runnable)
+                                .setDuration(
+                                    950
+                                ).setInterpolator(LinearInterpolator()).start()
+                        }
+                    }
+
                     Thread.sleep(1000);
 
+                    /*
                     //height simulation
                     val valHeight =
                         ((heightTxt.text.toString().split("m").toTypedArray())[0]).toInt();
@@ -288,15 +358,12 @@ class ViewActivity : AppCompatActivity()
                             .setDuration(
                                 950
                             ).setInterpolator(LinearInterpolator()).start()
-                    }
+                    }*/
 
                 } catch (e: Exception) {
                     println("RcvWifiDataThread-Error: " + e.toString())
                     e.printStackTrace()
                 }
-
-
-                //RcvPackets();
             }
         })
         RcvWifiDataThread.start();
@@ -343,6 +410,27 @@ class ViewActivity : AppCompatActivity()
         VidErrorTxt.visibility = TextView.VISIBLE;
     }
 
+    fun getMapImage(latitude: Double, longitude: Double): Bitmap?
+    {
+        println("passt 1.")
+        var bmp: Bitmap? = null
+        var inputStream: InputStream? = null
+        try {
+            val mapUrl =
+                URL("http://maps.google.com/maps/api/staticmap?center=$latitude,$longitude&zoom=15&size=200x200&sensor=false")
+            val httpURLConnection = mapUrl.openConnection() as HttpURLConnection
+            inputStream = BufferedInputStream(httpURLConnection.inputStream)
+            bmp = BitmapFactory.decodeStream(inputStream)
+            inputStream.close()
+            httpURLConnection.disconnect()
+        } catch (e: IllegalStateException) {
+            println(e.toString())
+        } catch (e: IOException) {
+            println(e.toString())
+        }
+        return bmp
+    }
+
     override fun onBackPressed()
     {
         super.onBackPressed();
@@ -350,10 +438,10 @@ class ViewActivity : AppCompatActivity()
         BackToMainMenu();
     }
 
-    fun changeBatteryLevel(value: Int)
+    fun changeBatteryLevel(value: Int?)
     {
         batteryStatus.chargeLevel = value;
-        batteryLevel.setText(value.toString().plus("%"));
+        batteryLevel.setText(value?.toString().plus("%"));
     }
 
     fun isHostAvailable(host: String?, port: Int, timeout: Int): Boolean
@@ -394,24 +482,25 @@ class ViewActivity : AppCompatActivity()
         }
     }
 
-    fun RcvPackets()
+    fun RcvPackets(): String?
     {
         val buffer = ByteArray(1024)
         var socket: DatagramSocket? = null
         try
         {
-            socket = DatagramSocket(this.rcvUDP_Port)
-            socket.broadcast = true
-            val packet = DatagramPacket(buffer, buffer.size)
-            socket.receive(packet)
+            socket = DatagramSocket(this.rcvUDP_Port);
+            socket.broadcast = true;
+            val packet = DatagramPacket(buffer, buffer.size);
+            socket.receive(packet);
             val rcvMsg = String(packet.data, Charsets.UTF_8);
             println("RcvPackets() packet received = " + rcvMsg);
-
+            return rcvMsg;
         }
         catch (e: Exception)
         {
             println("RcvPackets-Error: " + e.toString())
             e.printStackTrace()
+            return null;
         }
         finally
         {
@@ -515,5 +604,46 @@ class ViewActivity : AppCompatActivity()
         startActivity(intent);
         finish();
         Toast.makeText(this, "Disconnected", Toast.LENGTH_SHORT).show();
+    }
+
+    private fun setUpMap(lat: Double, long: Double, orientation: Float)
+    {
+        val currentLatLng = LatLng(lat, long)
+        val balloon = SimpleMarkerBalloon("")
+        map.removeMarkers()
+        map.addMarker(MarkerBuilder(currentLatLng).markerBalloon(balloon).draggable(false))
+        val focusArea =
+            CameraPosition.builder()
+                .focusPosition(currentLatLng)
+                .zoom(19.0)
+                .apply {
+                    bearing(orientation.toDouble())
+                    pitch(75.0)
+                }
+                .build()
+        map.centerOn(focusArea);
+    }
+    override fun onMapReady(@NonNull tomtomMap: TomtomMap)
+    {
+        this.map = tomtomMap
+
+        map.updateGesturesConfiguration(
+            GesturesConfiguration.Builder()
+                .zoomEnabled(false)
+                .rotationEnabled(false)
+                .tiltEnabled(false)
+                .panningEnabled(false)
+                .build()
+        )
+
+        map.isMyLocationEnabled = false
+        map.uiSettings.compassView.hide()
+        map.uiSettings.currentLocationView.hide()
+        map.uiSettings.panningControlsView.hide()
+        map.uiSettings.zoomingControlsView.hide()
+        map.uiSettings.logoView.setGravity(0)
+        map.uiSettings.logoView.setMargins(10000000, 10000000, 10000000, 10000000)
+        map.set3DMode();
+        //setUpMap(48.89080790898993, 8.695337466052832, 270.0f)
     }
 }
