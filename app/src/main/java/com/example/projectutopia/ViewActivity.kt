@@ -270,13 +270,13 @@ class ViewActivity : AppCompatActivity(), OnMapReadyCallback
                     val gpsAltString = splittedMsg?.elementAt(6);
                     val batteryValueString = splittedMsg?.elementAt(7);
 
-                    val tempValue = ((tempValueString)?.toFloat())?.roundToInt();
+                    val tempValue = ((tempValueString)?.toDouble())?.roundToInt();
                     val tempString = tempValue.toString();
 
-                    val altValue = ((altValueString)?.toFloat())?.roundToInt();
+                    val altValue = ((altValueString)?.toDouble())?.roundToInt();
                     val altString = altValue.toString();
 
-                    val batteryValue = ((batteryValueString)?.toFloat())?.roundToInt();
+                    val batteryValue = ((batteryValueString)?.toDouble())?.roundToInt();
 
                     //height
                     heightTxt.setText((altString + "m"));
@@ -286,7 +286,7 @@ class ViewActivity : AppCompatActivity(), OnMapReadyCallback
                     changeBatteryLevel(batteryValue);
 
                     //map
-                    val compassValue = compassValueString?.toFloat();
+                    val compassValue = compassValueString?.toDouble();
 
                     val gpsLatValue = gpsLatString?.toDouble();
                     val gpsLongValue = gpsLongString?.toDouble();
@@ -295,21 +295,22 @@ class ViewActivity : AppCompatActivity(), OnMapReadyCallback
                     }
 
                     //compass
+                    val animDuration = 800
                     runOnUiThread {
                         val runnable: Runnable = object : Runnable {
                             override fun run() {
                                 if (compassValue != null) {
-                                    picCompass.animate().rotation(compassValue).withEndAction(this)
+                                    picCompass.animate().rotation(compassValue.toFloat()).withEndAction(this)
                                         .setDuration(
-                                            950
+                                            animDuration.toLong()
                                         ).setInterpolator(LinearInterpolator()).start()
                                 }
                             }
                         }
                         if (compassValue != null) {
-                            picCompass.animate().rotation(compassValue).withEndAction(runnable)
+                            picCompass.animate().rotation(compassValue.toFloat()).withEndAction(runnable)
                                 .setDuration(
-                                    950
+                                    animDuration.toLong()
                                 ).setInterpolator(LinearInterpolator()).start()
                         }
                     }
@@ -606,7 +607,7 @@ class ViewActivity : AppCompatActivity(), OnMapReadyCallback
         Toast.makeText(this, "Disconnected", Toast.LENGTH_SHORT).show();
     }
 
-    private fun setUpMap(lat: Double, long: Double, orientation: Float)
+    private fun setUpMap(lat: Double, long: Double, orientation: Double)
     {
         val currentLatLng = LatLng(lat, long)
         val balloon = SimpleMarkerBalloon("")
@@ -617,7 +618,7 @@ class ViewActivity : AppCompatActivity(), OnMapReadyCallback
                 .focusPosition(currentLatLng)
                 .zoom(19.0)
                 .apply {
-                    bearing(orientation.toDouble())
+                    bearing(orientation)
                     pitch(75.0)
                 }
                 .build()
